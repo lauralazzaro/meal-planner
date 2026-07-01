@@ -18,7 +18,11 @@ def seed():
     db.add(dish)
     db.flush()
 
-    db.add(models.DishIngredient(dish_id=dish.id, ingredient_id=tomato.id, quantity=200, unit="g"))
+    db.add(
+        models.DishIngredient(
+            dish_id=dish.id, ingredient_id=tomato.id, quantity=200, unit="g"
+        )
+    )
     db.add(models.DishIngredient(dish_id=dish.id, ingredient_id=pasta.id))
 
     db.commit()

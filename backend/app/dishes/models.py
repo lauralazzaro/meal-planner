@@ -5,6 +5,9 @@ from app.ingredients.models import Ingredient
 
 
 class Dish(Base):
+    """Represents a meal label linked to a main ingredient.
+    Used in weekly plans to organize daily meals."""
+
     __tablename__ = "dishes"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -17,8 +20,8 @@ class Dish(Base):
 
     @property
     def display_label(self):
-        """Return the label if set, otherwise fall back to the main ingredient
-        name or the main category."""
+        """Return the label if set, otherwise fall back to the main ingredient name."""
+
         if self.label:
             return self.label
         if self.main_ingredient:

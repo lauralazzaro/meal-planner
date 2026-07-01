@@ -11,4 +11,5 @@ app.include_router(dishes_router)
 @app.get("/")
 def read_root():
     """Simple health-check endpoint to verify the API is running."""
+
     return {"status": "LiteMind backend is running"}

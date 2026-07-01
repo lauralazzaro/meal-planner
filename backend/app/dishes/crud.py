@@ -5,11 +5,13 @@ from app.ingredients.models import Ingredient
 
 def get_all_dishes(db: Session):
     """Return all non-deleted dishes"""
+
     return db.query(models.Dish).filter(models.Dish.is_deleted == False).all()
 
 
 def get_one_dish(dish_id: int, db: Session):
-    """Return one dish by id. Raise 404 if not found or deleted"""
+    """Return a single non-deleted dish by id."""
+
     dish = (
         db.query(models.Dish)
         .filter(models.Dish.id == dish_id, models.Dish.is_deleted == False)
@@ -23,7 +25,8 @@ def get_one_dish(dish_id: int, db: Session):
 
 
 def create_dish(dish: schemas.DishCreate, db: Session):
-    """Create a dish using an ingredient in the system."""
+    """Create a new dish linked to an existing ingredient."""
+
     ingredient = (
         db.query(Ingredient)
         .filter(
@@ -42,7 +45,8 @@ def create_dish(dish: schemas.DishCreate, db: Session):
 
 
 def update_dish(dish_id: int, dish_update: schemas.DishUpdate, db: Session):
-    """Update a dish in the system"""
+    """Update one or more fields of an existing dish."""
+
     dish = (
         db.query(models.Dish)
         .filter(models.Dish.id == dish_id, models.Dish.is_deleted == False)
@@ -73,7 +77,8 @@ def update_dish(dish_id: int, dish_update: schemas.DishUpdate, db: Session):
 
 
 def delete_dish(dish_id: int, db: Session):
-    """Mark a dish as deleted"""
+    """Soft delete a dish by setting is_deleted to True."""
+
     dish = (
         db.query(models.Dish)
         .filter(models.Dish.id == dish_id, models.Dish.is_deleted == False)

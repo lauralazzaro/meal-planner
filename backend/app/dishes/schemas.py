@@ -15,6 +15,7 @@ class DishCreate(DishBase):
 class DishOut(DishBase):
     id: int
     main_ingredient: ing_schemas.IngredientOut | None = None
+
     model_config = {"from_attributes": True}
 
 
