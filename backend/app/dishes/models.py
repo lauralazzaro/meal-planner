@@ -10,8 +10,7 @@ class Dish(Base):
     id = Column(Integer, primary_key=True, index=True)
     label = Column(String, nullable=True)
     comment = Column(String, nullable=True)
-    main_ingredient_id = Column(Integer, ForeignKey("ingredients.id"), nullable=True)
-    main_category = Column(String, nullable=True)
+    main_ingredient_id = Column(Integer, ForeignKey("ingredients.id"), nullable=False)
     is_deleted = Column(Boolean, nullable=False, default=False)
 
     main_ingredient = relationship("Ingredient", foreign_keys=[main_ingredient_id])

@@ -1,0 +1,8 @@
+[
+  {"label": "Pollo al limone", "main_ingredient": "Pollo"},
+  {"label": "Pollo alla griglia", "main_ingredient": "Pollo"},
+  {"label": "Pollo fritto", "main_ingredient": "Pollo"},
+  {"label": "Pasta al sugo", "main_ingredient": "Pasta"},
+  {"label": "Pasta fredda", "main_ingredient": "Pasta"},
+  {"label": "Risotto al sugo", "main_ingredient": "Riso"}
+]

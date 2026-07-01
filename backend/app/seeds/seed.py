@@ -3,6 +3,7 @@ import os
 from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app.ingredients.models import Ingredient
+from app.dishes.models import Dish
 
 
 def load_json(filename: str):
@@ -29,10 +30,41 @@ def seed_ingredients(db: Session):
 print(f"__name__ is: {__name__}")
 
 
+def seed_dishes(db: Session):
+    """Insert dishes if they don't already exist."""
+    data = load_json("dishes.json")
+    count = 0
+    for item in data:
+        exists = db.query(Dish).filter(Dish.label == item["label"]).first()
+        if not exists:
+            ingredient = (
+                db.query(Ingredient)
+                .filter(Ingredient.name == item["main_ingredient"])
+                .first()
+            )
+            if not ingredient:
+                print(
+                    f"Ingredient '{item['main_ingredient']}' not found, skipping {item['label']}"
+                )
+                continue
+
+            db.add(
+                Dish(
+                    label=item["label"],
+                    main_ingredient_id=ingredient.id,
+                )
+            )
+            count += 1
+
+    db.commit()
+    print(f"Inserted {count} new dishes.")
+
+
 def run():
     db = SessionLocal()
     try:
         seed_ingredients(db)
+        seed_dishes(db)
     except Exception as e:
         print(f"Seed failed: {e}")
         db.rollback()
