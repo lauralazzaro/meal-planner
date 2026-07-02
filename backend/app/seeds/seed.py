@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app.ingredients.models import Ingredient
 from app.dishes.models import Dish
+from app.weekly_plans.models import WeeklyPlan, WeeklyPlanDish
 
 
 def load_json(filename: str):
@@ -60,11 +61,59 @@ def seed_dishes(db: Session):
     print(f"Inserted {count} new dishes.")
 
 
+def seed_weekly_plans(db: Session):
+    """Insert weekly plans if they don't already exist."""
+    data = load_json("weekly_plans.json")
+    count = 0
+
+    for plan_data in data:
+        exists = (
+            db.query(WeeklyPlan).filter(WeeklyPlan.name == plan_data["name"]).first()
+        )
+        if exists:
+            continue
+
+        plan = WeeklyPlan(
+            name=plan_data["name"],
+            is_default=plan_data["is_default"],
+        )
+        db.add(plan)
+        db.flush()
+
+        for dish_data in plan_data["dishes"]:
+            dish = (
+                db.query(Dish)
+                .filter(
+                    Dish.label == dish_data["dish_label"],
+                    Dish.is_deleted == False,
+                )
+                .first()
+            )
+            if not dish:
+                print(f"Dish '{dish_data['dish_label']}' not found, skipping.")
+                continue
+
+            db.add(
+                WeeklyPlanDish(
+                    weekly_plan_id=plan.id,
+                    day_of_week=dish_data["day_of_week"],
+                    meal_type=dish_data["meal_type"],
+                    dish_id=dish.id,
+                )
+            )
+
+        count += 1
+
+    db.commit()
+    print(f"Inserted {count} new weekly plans.")
+
+
 def run():
     db = SessionLocal()
     try:
         seed_ingredients(db)
         seed_dishes(db)
+        seed_weekly_plans(db)
     except Exception as e:
         print(f"Seed failed: {e}")
         db.rollback()

@@ -5,7 +5,7 @@ from app.ingredients import schemas as ing_schemas
 class DishBase(BaseModel):
     label: str | None = None
     comment: str | None = None
-    main_ingredient_id: int
+    main_ingredient_id: int | None = None
 
 
 class DishCreate(DishBase):
