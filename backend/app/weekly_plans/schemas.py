@@ -26,6 +26,10 @@ class WeeklyPlanDishUpdate(BaseModel):
     dish_id: int | None = None
 
 
+class WeeklyPlanDishBulkCreate(BaseModel):
+    dishes: list[WeeklyPlanDishCreate]
+
+
 class WeeklyPlanBase(BaseModel):
     name: str | None = None
     is_default: bool = False

@@ -11,3 +11,25 @@ def read_all_weekly_plans(db: Session = Depends(get_db)):
     """Return all weekly plans."""
 
     return crud.get_all_weekly_plans(db)
+
+
+@router.post("/", response_model=schemas.WeeklyPlanOut)
+def add_weekly_plan(
+    weekly_plan: schemas.WeeklyPlanCreate, db: Session = Depends(get_db)
+):
+    return crud.create_weekly_plan(weekly_plan, db)
+
+
+@router.post("/{plan_id}/dishes", response_model=list[schemas.WeeklyPlanDishOut])
+def add_dishes_to_plan(
+    plan_id: int,
+    payload: schemas.WeeklyPlanDishBulkCreate,
+    db: Session = Depends(get_db),
+):
+    """Add multiple dishes to a weekly plan at once. Fails entirely if any dish_id is invalid."""
+    entries = crud.add_dishes_to_plan(plan_id, payload.dishes, db)
+    if entries is None:
+        raise HTTPException(
+            status_code=404, detail="Plan not found or one or more dish_id invalid"
+        )
+    return entries
