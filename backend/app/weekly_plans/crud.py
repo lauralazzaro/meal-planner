@@ -75,3 +75,45 @@ def add_dishes_to_plan(
         db.refresh(entry)
 
     return new_entries
+
+
+def update_plan(plan_id: int, plan_update: schemas.WeeklyPlanUpdate, db: Session):
+    """Update name or default status of a plan"""
+
+    plan = db.query(models.WeeklyPlan).filter(models.WeeklyPlan.id == plan_id).first()
+
+    if not plan:
+        return None
+
+    if plan_update.is_default is True:
+        db.query(models.WeeklyPlan).filter(models.WeeklyPlan.is_default == True).update(
+            {"is_default": False}
+        )
+
+    update_data = plan_update.model_dump(exclude_unset=True)
+
+    for field, value in update_data.items():
+        setattr(plan, field, value)
+
+    db.commit()
+    db.refresh(plan)
+
+    return plan
+
+
+def delete_weekly_plan(plan_id: int, db: Session):
+    """Permanently delete a weekly plan.
+
+    Hard delete is used here (not soft delete) because a WeeklyPlan is
+    purely organizational -- unlike Ingredient, nothing else depends on
+    it, and there's no need to preserve history or allow recovery once
+    it's deleted.
+    """
+
+    plan = db.query(models.WeeklyPlan).filter(models.WeeklyPlan.id == plan_id).first()
+    if not plan:
+        return None
+
+    db.delete(plan)
+    db.commit()
+    return plan

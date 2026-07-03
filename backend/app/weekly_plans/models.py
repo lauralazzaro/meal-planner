@@ -18,13 +18,11 @@ class WeeklyPlan(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=True)
-    is_default = Column(
-        Boolean,
-        nullable=False,
-        default=False,
-    )
+    is_default = Column(Boolean, nullable=False, default=False)
 
-    dishes = relationship("WeeklyPlanDish", back_populates="weekly_plan")
+    dishes = relationship(
+        "WeeklyPlanDish", back_populates="weekly_plan", cascade="all, delete-orphan"
+    )
 
     # Enforce exactly one weekly plan as default
     __table_args__ = (
