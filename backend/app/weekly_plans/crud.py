@@ -117,3 +117,23 @@ def delete_weekly_plan(plan_id: int, db: Session):
     db.delete(plan)
     db.commit()
     return plan
+
+
+def delete_weekly_plan_dish(plan_id: int, weekly_plan_dish_id: int, db: Session):
+    """Delete a dish entry from a weekly plan"""
+
+    weekly_dish = (
+        db.query(models.WeeklyPlanDish)
+        .filter(
+            models.WeeklyPlanDish.weekly_plan_id == plan_id,
+            models.WeeklyPlanDish.id == weekly_plan_dish_id,
+        )
+        .first()
+    )
+    if not weekly_dish:
+        return None
+
+    db.delete(weekly_dish)
+    db.commit()
+
+    return weekly_dish
