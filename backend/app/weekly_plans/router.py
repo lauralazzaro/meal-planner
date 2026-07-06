@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.weekly_plans import crud, schemas
 
-router = APIRouter(prefix="/weeklyplans", tags=["weeklyplans"])
+router = APIRouter(prefix="/weekly-plans", tags=["weekly-plans"])
 
 
 @router.get("/", response_model=list[schemas.WeeklyPlanOut])
@@ -11,6 +11,18 @@ def read_all_weekly_plans(db: Session = Depends(get_db)):
     """Return all weekly plans."""
 
     return crud.get_all_weekly_plans(db)
+
+
+@router.get("/{plan_id}", response_model=schemas.WeeklyPlanOut)
+def read_one_plan_by_id(plan_id: int, db: Session = Depends(get_db)):
+    """Return one weekly plan."""
+
+    plan = crud.get_one_weekly_plan(plan_id, db)
+
+    if not plan:
+        raise HTTPException(status_code=404, detail="Plan not found")
+
+    return plan
 
 
 @router.post("/", response_model=schemas.WeeklyPlanOut)
