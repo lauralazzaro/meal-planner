@@ -1,11 +1,28 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from app.dishes import schemas as dishes_schemas
+from enum import Enum
+
+
+class DayOfWeek(str, Enum):
+    lunedi = "lunedì"
+    martedi = "martedì"
+    mercoledi = "mercoledì"
+    giovedi = "giovedì"
+    venerdi = "venerdì"
+    sabato = "sabato"
+    domenica = "domenica"
+
+
+class MealType(str, Enum):
+    colazione = "colazione"
+    pranzo = "pranzo"
+    cena = "cena"
 
 
 class WeeklyPlanDishBase(BaseModel):
-    day_of_week: str
-    meal_type: str
-    dish_id: int
+    day_of_week: DayOfWeek
+    meal_type: MealType
+    dish_id: int = Field(..., gt=0)
 
 
 class WeeklyPlanDishCreate(WeeklyPlanDishBase):
@@ -21,9 +38,9 @@ class WeeklyPlanDishOut(WeeklyPlanDishBase):
 
 
 class WeeklyPlanDishUpdate(BaseModel):
-    day_of_week: str | None = None
-    meal_type: str | None = None
-    dish_id: int | None = None
+    day_of_week: DayOfWeek | None = None
+    meal_type: MealType | None = None
+    dish_id: int | None = Field(None, gt=0)
 
 
 class WeeklyPlanDishBulkCreate(BaseModel):
@@ -31,7 +48,7 @@ class WeeklyPlanDishBulkCreate(BaseModel):
 
 
 class WeeklyPlanBase(BaseModel):
-    name: str | None = None
+    name: str | None = Field(None, min_length=1, max_length=50)
     is_default: bool = False
 
 
@@ -47,5 +64,5 @@ class WeeklyPlanOut(WeeklyPlanBase):
 
 
 class WeeklyPlanUpdate(BaseModel):
-    name: str | None = None
+    name: str | None = Field(None, min_length=1, max_length=50)
     is_default: bool | None = None

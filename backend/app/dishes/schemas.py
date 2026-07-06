@@ -1,15 +1,15 @@
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, Field
 from app.ingredients import schemas as ing_schemas
 
 
 class DishBase(BaseModel):
-    label: str | None = None
-    comment: str | None = None
-    main_ingredient_id: int | None = None
+    label: str | None = Field(None, min_length=1, max_length=100)
+    comment: str | None = Field(None, min_length=1, max_length=500)
+    main_ingredient_id: int | None = Field(None, gt=0)
 
 
 class DishCreate(DishBase):
-    pass
+    main_ingredient_id: int = Field(..., gt=0)
 
 
 class DishOut(DishBase):
@@ -20,6 +20,6 @@ class DishOut(DishBase):
 
 
 class DishUpdate(BaseModel):
-    label: str | None = None
-    comment: str | None = None
-    main_ingredient_id: int | None = None
+    label: str | None = Field(None, min_length=1, max_length=100)
+    comment: str | None = Field(None, min_length=1, max_length=500)
+    main_ingredient_id: int | None = Field(None, gt=0)
