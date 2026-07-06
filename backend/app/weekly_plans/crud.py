@@ -24,7 +24,7 @@ def get_all_weekly_plans(db: Session):
     return db.query(models.WeeklyPlan).all()
 
 
-def add_weekly_plan(weekly_plan: schemas.WeeklyPlanCreate, db: Session):
+def create_weekly_plan(weekly_plan: schemas.WeeklyPlanCreate, db: Session):
     """Add new weekly plan in the system. Verify if new one is default and set the previous as not default"""
 
     if weekly_plan.is_default is True:

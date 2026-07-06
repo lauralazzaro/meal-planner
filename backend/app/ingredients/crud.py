@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from app.ingredients import models, schemas
 
 
@@ -26,11 +27,18 @@ def get_all_ingredients(db: Session):
 
 
 def create_ingredient(ingredient: schemas.IngredientCreate, db: Session):
-    """Add a new ingredient to the pool."""
+    """
+    Add a new ingredient to the pool.
+    Raises IntegrityError if name already exists.
+    """
 
     new_ingredient = models.Ingredient(**ingredient.model_dump())
     db.add(new_ingredient)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise
     db.refresh(new_ingredient)
     return new_ingredient
 

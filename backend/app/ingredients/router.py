@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
-from app.database import get_db
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
+from app.database import get_db
 from app.ingredients import crud, schemas
 
 router = APIRouter(prefix="/ingredients", tags=["ingredients"])
@@ -29,7 +30,12 @@ def create_ingredient(
 ):
     """Add a new ingredient to the pool."""
 
-    return crud.create_ingredient(ingredient, db)
+    try:
+        return crud.create_ingredient(ingredient, db)
+    except IntegrityError:
+        raise HTTPException(
+            status_code=409, detail="An ingredient with this name already exists"
+        )
 
 
 @router.patch("/{ingredient_id}", response_model=schemas.IngredientOut)
