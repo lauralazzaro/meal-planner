@@ -39,19 +39,6 @@ def client():
     return TestClient(app)
 
 
-@pytest.fixture
-def sample_dish(client, sample_ingredient):
-    """Create a sample dish linked to sample_ingredient and return its data."""
-    response = client.post(
-        "/dishes/",
-        json={
-            "label": "Pasta al pomodoro",
-            "main_ingredient_id": sample_ingredient["id"],
-        },
-    )
-    return response.json()
-
-
 def create_test_ingredient(client, name="Pomodoro", category="vegetables"):
     """Helper to create an ingredient and return its data."""
     response = client.post(
@@ -59,3 +46,24 @@ def create_test_ingredient(client, name="Pomodoro", category="vegetables"):
         json={"name": name, "shopping_category": category},
     )
     return response.json()
+
+
+@pytest.fixture
+def sample_ingredient(client):
+    """Create a sample ingredient and return its data."""
+    return create_test_ingredient(client)
+
+
+def create_test_dish(client, ingredient_id, label="Pasta al pomodoro"):
+    """Helper to create a dish linked to an existing ingredient."""
+    response = client.post(
+        "/dishes/",
+        json={"label": label, "main_ingredient_id": ingredient_id},
+    )
+    return response.json()
+
+
+@pytest.fixture
+def sample_dish(client, sample_ingredient):
+    """Create a sample dish linked to sample_ingredient."""
+    return create_test_dish(client, sample_ingredient["id"])
