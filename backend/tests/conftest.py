@@ -27,6 +27,7 @@ app.dependency_overrides[get_db] = override_get_db
 @pytest.fixture(scope="function", autouse=True)
 def setup_database():
     """Create all tables before each test, drop them after."""
+
     Base.metadata.create_all(bind=engine)
     yield
     Base.metadata.drop_all(bind=engine)
@@ -36,3 +37,25 @@ def setup_database():
 def client():
     """Provide a TestClient for making requests in tests."""
     return TestClient(app)
+
+
+@pytest.fixture
+def sample_dish(client, sample_ingredient):
+    """Create a sample dish linked to sample_ingredient and return its data."""
+    response = client.post(
+        "/dishes/",
+        json={
+            "label": "Pasta al pomodoro",
+            "main_ingredient_id": sample_ingredient["id"],
+        },
+    )
+    return response.json()
+
+
+def create_test_ingredient(client, name="Pomodoro", category="vegetables"):
+    """Helper to create an ingredient and return its data."""
+    response = client.post(
+        "/ingredients/",
+        json={"name": name, "shopping_category": category},
+    )
+    return response.json()
