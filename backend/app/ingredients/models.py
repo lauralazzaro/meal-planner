@@ -10,6 +10,6 @@ class Ingredient(Base):
     __tablename__ = "ingredients"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)
+    name = Column(String, nullable=False, unique=True)
     shopping_category = Column(String, nullable=False)
     is_deleted = Column(Boolean, nullable=False, default=False)
