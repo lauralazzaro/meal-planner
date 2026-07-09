@@ -2,8 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.weekly_plans import crud, schemas
+from app.auth.security import get_current_user
 
-router = APIRouter(prefix="/weekly-plans", tags=["weekly-plans"])
+router = APIRouter(
+    prefix="/weekly-plans",
+    tags=["weekly-plans"],
+    dependencies=[Depends(get_current_user)],
+)
 
 
 @router.get("/", response_model=list[schemas.WeeklyPlanOut])

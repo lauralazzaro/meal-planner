@@ -3,15 +3,14 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.dishes import crud, schemas
 from app.auth.security import get_current_user
-from app.auth.models import User
 
-router = APIRouter(prefix="/dishes", tags=["dishes"])
+router = APIRouter(
+    prefix="/dishes", tags=["dishes"], dependencies=[Depends(get_current_user)]
+)
 
 
 @router.get("/", response_model=list[schemas.DishOut])
-def read_all_dishes(
-    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
-):
+def read_all_dishes(db: Session = Depends(get_db)):
     """Return all non-deleted dishes."""
 
     return crud.get_all_dishes(db)

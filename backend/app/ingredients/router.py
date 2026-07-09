@@ -3,8 +3,13 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from app.database import get_db
 from app.ingredients import crud, schemas
+from app.auth.security import get_current_user
 
-router = APIRouter(prefix="/ingredients", tags=["ingredients"])
+router = APIRouter(
+    prefix="/ingredients",
+    tags=["ingredients"],
+    dependencies=[Depends(get_current_user)],
+)
 
 
 @router.get("/{ingredient_id}", response_model=schemas.IngredientOut)
