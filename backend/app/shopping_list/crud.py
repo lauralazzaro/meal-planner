@@ -98,8 +98,8 @@ def create_shopping_list_item(
 
 
 def update_shopping_list_item(
-    item_id: int,
     shopping_list_id: int,
+    item_id: int,
     payload: schemas.ShoppingListItemUpdate,
     db: Session,
 ):
@@ -124,7 +124,7 @@ def update_shopping_list_item(
     return item
 
 
-def delete_shopping_list_item(item_id: int, shopping_list_id: int, db: Session):
+def delete_shopping_list_item(shopping_list_id: int, item_id: int, db: Session):
     """Permanently remove a single item from a shopping list."""
     item = (
         db.query(models.ShoppingListItem)
