@@ -1,29 +1,9 @@
 [
-    {
-        "name": "lista numero 1",
-        "items": [
-            {
-                "ingredient_id": 19
-            },
-            {
-                "ingredient_id": 24
-            },
-            {
-                "name": "Lasagne",
-                "shopping_category": "Pasta e cereali"
-            }
-
-        ]
-    },
-    {
-        "name": "lista numero 2",
-        "items": [
-            {
-                "ingredient_id": 8
-            },
-            {
-                "ingredient_id": 6
-            }
-        ]
-    }
+  {
+    "name": "Lista spesa test",
+    "items": [
+      {"ingredient_name": "Pomodoro", "quantity": 6, "unit": "pz"},
+      {"name": "Detersivo piatti", "shopping_category": "Altro", "quantity": 1}
+    ]
+  }
 ]

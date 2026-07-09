@@ -6,13 +6,12 @@ from app.ingredients.models import Ingredient  # noqa: F401
 
 
 class ShoppingList(Base):
-    """A shopping list, containing multiple items."""
-
     __tablename__ = "shopping_lists"
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     items = relationship(
         "ShoppingListItem", back_populates="shopping_list", cascade="all, delete-orphan"

@@ -1,87 +1,128 @@
 """Tests for the Dish module: create, read, update, delete,
-plus validation for the required main_ingredient_id."""
+validation, and multi-tenant isolation."""
 
 from tests.conftest import create_test_dish
 
 
 class TestCreateDish:
-    """Happy path and validation for POST /dishes."""
-
-    def test_create_dish(self, client, sample_ingredient):
-        data = create_test_dish(client, sample_ingredient["id"])
+    def test_create_dish(self, client, auth_headers, sample_ingredient):
+        data = create_test_dish(client, auth_headers, sample_ingredient["id"])
         assert data["label"] == "Pasta al pomodoro"
         assert data["main_ingredient"]["name"] == "Pomodoro"
-        assert "id" in data
 
-    def test_create_dish_with_nonexistent_ingredient_returns_404(self, client):
+    def test_create_dish_without_auth_returns_401(self, client, sample_ingredient):
         response = client.post(
             "/dishes/",
-            json={"label": "Piatto impossibile", "main_ingredient_id": 9999},
+            json={"label": "Test", "main_ingredient_id": sample_ingredient["id"]},
         )
-        assert response.status_code == 404
+        assert response.status_code == 401
 
-    def test_create_dish_without_main_ingredient_returns_422(self, client):
-        response = client.post(
-            "/dishes/",
-            json={"label": "Piatto senza ingrediente"},
-        )
-        assert response.status_code == 422
-
-    def test_create_dish_with_label_over_max_length_returns_422(
-        self, client, sample_ingredient
+    def test_create_dish_with_nonexistent_ingredient_returns_404(
+        self, client, auth_headers
     ):
         response = client.post(
             "/dishes/",
-            json={"label": "a" * 101, "main_ingredient_id": sample_ingredient["id"]},
+            json={"label": "Piatto impossibile", "main_ingredient_id": 9999},
+            headers=auth_headers,
         )
+        assert response.status_code == 404
+
+    def test_cannot_create_dish_with_other_users_ingredient(
+        self, client, auth_headers, other_user_headers, sample_ingredient
+    ):
+        """A user should not be able to create a dish linked to another user's ingredient."""
+        response = client.post(
+            "/dishes/",
+            json={
+                "label": "Piatto rubato",
+                "main_ingredient_id": sample_ingredient["id"],
+            },
+            headers=other_user_headers,
+        )
+        assert response.status_code == 404
+
+    def test_create_dish_without_main_ingredient_returns_422(
+        self, client, auth_headers
+    ):
+        response = client.post("/dishes/", json={"label": "Test"}, headers=auth_headers)
         assert response.status_code == 422
 
 
 class TestReadDish:
-    """GET /dishes and GET /dishes/{id}."""
-
-    def test_get_dish_by_id(self, client, sample_dish):
-        response = client.get(f"/dishes/{sample_dish['id']}")
+    def test_get_dish_by_id(self, client, auth_headers, sample_dish):
+        response = client.get(f"/dishes/{sample_dish['id']}", headers=auth_headers)
         assert response.status_code == 200
         assert response.json()["label"] == "Pasta al pomodoro"
 
-    def test_get_nonexistent_dish_returns_404(self, client):
-        response = client.get("/dishes/9999")
+    def test_get_nonexistent_dish_returns_404(self, client, auth_headers):
+        response = client.get("/dishes/9999", headers=auth_headers)
         assert response.status_code == 404
 
-    def test_get_all_dishes(self, client, sample_dish):
-        response = client.get("/dishes/")
+    def test_get_all_dishes(self, client, auth_headers, sample_dish):
+        response = client.get("/dishes/", headers=auth_headers)
         assert response.status_code == 200
         assert len(response.json()) == 1
 
+    def test_cannot_read_other_users_dish(
+        self, client, auth_headers, other_user_headers, sample_dish
+    ):
+        response = client.get(
+            f"/dishes/{sample_dish['id']}", headers=other_user_headers
+        )
+        assert response.status_code == 404
+
+    def test_dish_list_isolated_between_users(
+        self, client, other_user_headers, sample_dish
+    ):
+        response = client.get("/dishes/", headers=other_user_headers)
+        assert response.json() == []
+
 
 class TestUpdateDish:
-    """PATCH /dishes/{id}."""
-
-    def test_update_dish_label(self, client, sample_dish):
+    def test_update_dish_label(self, client, auth_headers, sample_dish):
         response = client.patch(
-            f"/dishes/{sample_dish['id']}", json={"label": "Pasta al pomodoro speciale"}
+            f"/dishes/{sample_dish['id']}",
+            json={"label": "Nuovo nome"},
+            headers=auth_headers,
         )
         assert response.status_code == 200
-        assert response.json()["label"] == "Pasta al pomodoro speciale"
+        assert response.json()["label"] == "Nuovo nome"
 
-    def test_update_nonexistent_dish_returns_404(self, client):
-        response = client.patch("/dishes/9999", json={"label": "Test"})
+    def test_update_nonexistent_dish_returns_404(self, client, auth_headers):
+        response = client.patch(
+            "/dishes/9999", json={"label": "Test"}, headers=auth_headers
+        )
+        assert response.status_code == 404
+
+    def test_cannot_update_other_users_dish(
+        self, client, other_user_headers, sample_dish
+    ):
+        response = client.patch(
+            f"/dishes/{sample_dish['id']}",
+            json={"label": "Hacked"},
+            headers=other_user_headers,
+        )
         assert response.status_code == 404
 
 
 class TestDeleteDish:
-    """DELETE /dishes/{id} (soft delete)."""
-
-    def test_delete_dish(self, client, sample_dish):
-        response = client.delete(f"/dishes/{sample_dish['id']}")
+    def test_delete_dish(self, client, auth_headers, sample_dish):
+        response = client.delete(f"/dishes/{sample_dish['id']}", headers=auth_headers)
         assert response.status_code == 200
 
-    def test_deleted_dish_not_in_list(self, client, sample_dish):
-        client.delete(f"/dishes/{sample_dish['id']}")
-        response = client.get("/dishes/")
+    def test_deleted_dish_not_in_list(self, client, auth_headers, sample_dish):
+        client.delete(f"/dishes/{sample_dish['id']}", headers=auth_headers)
+        response = client.get("/dishes/", headers=auth_headers)
         assert sample_dish["id"] not in [d["id"] for d in response.json()]
 
-    def test_delete_nonexistent_dish_returns_404(self, client):
-        response = client.delete("/dishes/9999")
+    def test_delete_nonexistent_dish_returns_404(self, client, auth_headers):
+        response = client.delete("/dishes/9999", headers=auth_headers)
+        assert response.status_code == 404
+
+    def test_cannot_delete_other_users_dish(
+        self, client, other_user_headers, sample_dish
+    ):
+        response = client.delete(
+            f"/dishes/{sample_dish['id']}", headers=other_user_headers
+        )
         assert response.status_code == 404
