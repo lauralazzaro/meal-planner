@@ -5,9 +5,6 @@ from app.ingredients.models import Ingredient
 
 
 class Dish(Base):
-    """Represents a meal label linked to a main ingredient.
-    Used in weekly plans to organize daily meals."""
-
     __tablename__ = "dishes"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -15,15 +12,14 @@ class Dish(Base):
     comment = Column(String, nullable=True)
     main_ingredient_id = Column(Integer, ForeignKey("ingredients.id"), nullable=False)
     is_deleted = Column(Boolean, nullable=False, default=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     main_ingredient = relationship("Ingredient", foreign_keys=[main_ingredient_id])
 
     @property
     def display_label(self):
-        """Return the label if set, otherwise fall back to the main ingredient name."""
-
         if self.label:
             return self.label
         if self.main_ingredient:
             return self.main_ingredient.name
-        return self.main_category
+        return None

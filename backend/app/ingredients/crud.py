@@ -1,38 +1,22 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from app.ingredients import models, schemas
+from app.core.crud_helpers import get_owned_record, get_all_owned_records
 
 
-def get_ingredient(ingredient_id: int, db: Session):
-    """Return a single non-deleted ingredient by id."""
-
-    return (
-        db.query(models.Ingredient)
-        .filter(
-            models.Ingredient.id == ingredient_id, models.Ingredient.is_deleted == False
-        )
-        .first()
-    )
+def get_ingredient(ingredient_id: int, user_id: int, db: Session):
+    """Return a single non-deleted ingredient by id, owned by the given user."""
+    return get_owned_record(models.Ingredient, ingredient_id, user_id, db)
 
 
-def get_all_ingredients(db: Session):
-    """Return all non-deleted ingredients ordered by category."""
-
-    return (
-        db.query(models.Ingredient)
-        .filter(models.Ingredient.is_deleted == False)
-        .order_by(models.Ingredient.shopping_category)
-        .all()
-    )
+def get_all_ingredients(user_id: int, db: Session):
+    """Return all non-deleted ingredients owned by the given user."""
+    return get_all_owned_records(models.Ingredient, user_id, db)
 
 
-def create_ingredient(ingredient: schemas.IngredientCreate, db: Session):
-    """
-    Add a new ingredient to the pool.
-    Raises IntegrityError if name already exists.
-    """
-
-    new_ingredient = models.Ingredient(**ingredient.model_dump())
+def create_ingredient(ingredient: schemas.IngredientCreate, user_id: int, db: Session):
+    """Add a new ingredient to the pool for the given user."""
+    new_ingredient = models.Ingredient(**ingredient.model_dump(), user_id=user_id)
     db.add(new_ingredient)
     try:
         db.commit()
@@ -44,18 +28,13 @@ def create_ingredient(ingredient: schemas.IngredientCreate, db: Session):
 
 
 def update_ingredient(
-    ingredient_id: int, ingredient_update: schemas.IngredientUpdate, db: Session
+    ingredient_id: int,
+    user_id: int,
+    ingredient_update: schemas.IngredientUpdate,
+    db: Session,
 ):
-    """Update one or more fields of an existing ingredient."""
-
-    ingredient = (
-        db.query(models.Ingredient)
-        .filter(
-            models.Ingredient.id == ingredient_id, models.Ingredient.is_deleted == False
-        )
-        .first()
-    )
-
+    """Update one or more fields of an existing ingredient owned by the user."""
+    ingredient = get_ingredient(ingredient_id, user_id, db)
     if not ingredient:
         return None
 
@@ -65,26 +44,16 @@ def update_ingredient(
 
     db.commit()
     db.refresh(ingredient)
-
     return ingredient
 
 
-def delete_ingredient(ingredient_id: int, db: Session):
-    """Soft delete an ingredient by setting is_deleted to True."""
-
-    ingredient = (
-        db.query(models.Ingredient)
-        .filter(
-            models.Ingredient.id == ingredient_id, models.Ingredient.is_deleted == False
-        )
-        .first()
-    )
-
+def delete_ingredient(ingredient_id: int, user_id: int, db: Session):
+    """Soft delete an ingredient owned by the user."""
+    ingredient = get_ingredient(ingredient_id, user_id, db)
     if not ingredient:
         return None
 
     ingredient.is_deleted = True
     db.commit()
     db.refresh(ingredient)
-
     return ingredient

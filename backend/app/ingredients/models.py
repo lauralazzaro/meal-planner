@@ -1,15 +1,16 @@
-from sqlalchemy import Column, Integer, String, Boolean
-from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, UniqueConstraint
 from app.database import Base
 
 
 class Ingredient(Base):
-    """Represents an ingredient in the shared pool.
-    Used as a reference for dishes and shopping lists."""
-
     __tablename__ = "ingredients"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False, unique=True)
+    name = Column(String, nullable=False)
     shopping_category = Column(String, nullable=False)
     is_deleted = Column(Boolean, nullable=False, default=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint("name", "user_id", name="uq_ingredient_name_per_user"),
+    )

@@ -12,23 +12,22 @@ from app.dishes.models import Dish
 
 
 class WeeklyPlan(Base):
-    """Represents a weekly plan for meals."""
-
     __tablename__ = "weekly_plan"
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=True)
     is_default = Column(Boolean, nullable=False, default=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     dishes = relationship(
         "WeeklyPlanDish", back_populates="weekly_plan", cascade="all, delete-orphan"
     )
 
-    # Enforce exactly one weekly plan as default
     __table_args__ = (
         Index(
-            "uq_one_default_weekly_plan",
+            "uq_one_default_weekly_plan_per_user",
             "is_default",
+            "user_id",
             unique=True,
             postgresql_where=(is_default == True),
         ),
