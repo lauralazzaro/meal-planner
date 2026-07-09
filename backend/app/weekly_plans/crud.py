@@ -1,38 +1,29 @@
 from sqlalchemy.orm import Session
 from app.weekly_plans import models, schemas
+from app.core.crud_helpers import get_owned_record, get_all_owned_records
 
 
-def get_one_weekly_plan(weekly_plan_id: int, db: Session):
+def get_one_weekly_plan(weekly_plan_id: int, user_id: int, db: Session):
     """Return a single weekly plan."""
 
-    return (
-        db.query(models.WeeklyPlan)
-        .filter(models.WeeklyPlan.id == weekly_plan_id)
-        .first()
-    )
+    return get_owned_record(models.WeeklyPlan, weekly_plan_id, user_id, db, True)
 
 
-def get_default_weekly_plan(db: Session):
-    """Return a single weekly plan."""
-
-    return (
-        db.query(models.WeeklyPlan).filter(models.WeeklyPlan.is_default == True).first()
-    )
+def get_all_weekly_plans(user_id: int, db: Session):
+    return get_all_owned_records(models.WeeklyPlan, user_id, db, True)
 
 
-def get_all_weekly_plans(db: Session):
-    return db.query(models.WeeklyPlan).all()
-
-
-def create_weekly_plan(weekly_plan: schemas.WeeklyPlanCreate, db: Session):
-    """Add new weekly plan in the system. Verify if new one is default and set the previous as not default"""
+def create_weekly_plan(
+    weekly_plan: schemas.WeeklyPlanCreate, user_id: int, db: Session
+):
+    """Add new weekly plan in the system and link it to the current user. Verify if new one is default and set the previous as not default"""
 
     if weekly_plan.is_default is True:
-        db.query(models.WeeklyPlan).filter(models.WeeklyPlan.is_default == True).update(
-            {"is_default": False}
-        )
+        db.query(models.WeeklyPlan).filter(
+            models.WeeklyPlan.is_default == True, models.WeeklyPlan.user_id == user_id
+        ).update({"is_default": False})
 
-    new_weekly_plan = models.WeeklyPlan(**weekly_plan.model_dump())
+    new_weekly_plan = models.WeeklyPlan(**weekly_plan.model_dump(), user_id=user_id)
     db.add(new_weekly_plan)
     db.commit()
     db.refresh(new_weekly_plan)
@@ -40,19 +31,30 @@ def create_weekly_plan(weekly_plan: schemas.WeeklyPlanCreate, db: Session):
 
 
 def add_dishes_to_plan(
-    plan_id: int, dishes_data: list[schemas.WeeklyPlanDishCreate], db: Session
+    plan_id: int,
+    dishes_data: list[schemas.WeeklyPlanDishCreate],
+    user_id: int,
+    db: Session,
 ):
     """Add multiple dishes to a weekly plan in a single transaction.
     Returns None if the plan doesn't exist or any dish_id is invalid."""
 
-    plan = db.query(models.WeeklyPlan).filter(models.WeeklyPlan.id == plan_id).first()
+    plan = (
+        db.query(models.WeeklyPlan)
+        .filter(models.WeeklyPlan.id == plan_id, models.WeeklyPlan.user_id == user_id)
+        .first()
+    )
     if not plan:
         return None
 
     dish_ids = [item.dish_id for item in dishes_data]
     existing_dishes = (
         db.query(models.Dish)
-        .filter(models.Dish.id.in_(dish_ids), models.Dish.is_deleted == False)
+        .filter(
+            models.Dish.id.in_(dish_ids),
+            models.Dish.user_id == user_id,
+            models.Dish.is_deleted == False,
+        )
         .all()
     )
 
@@ -77,31 +79,37 @@ def add_dishes_to_plan(
     return new_entries
 
 
-def update_plan(plan_id: int, plan_update: schemas.WeeklyPlanUpdate, db: Session):
-    """Update name or default status of a plan"""
+def update_plan(
+    plan_id: int, plan_update: schemas.WeeklyPlanUpdate, user_id: int, db: Session
+):
+    """Update name or default status of a plan."""
 
-    plan = db.query(models.WeeklyPlan).filter(models.WeeklyPlan.id == plan_id).first()
-
+    plan = (
+        db.query(models.WeeklyPlan)
+        .filter(models.WeeklyPlan.id == plan_id, models.WeeklyPlan.user_id == user_id)
+        .first()
+    )
     if not plan:
         return None
 
-    if plan_update.is_default is True:
-        db.query(models.WeeklyPlan).filter(models.WeeklyPlan.is_default == True).update(
-            {"is_default": False}
-        )
-
     update_data = plan_update.model_dump(exclude_unset=True)
+
+    if update_data.get("is_default") is True:
+        db.query(models.WeeklyPlan).filter(
+            models.WeeklyPlan.is_default == True,
+            models.WeeklyPlan.user_id == user_id,
+            models.WeeklyPlan.id != plan_id,
+        ).update({"is_default": False})
 
     for field, value in update_data.items():
         setattr(plan, field, value)
 
     db.commit()
     db.refresh(plan)
-
     return plan
 
 
-def delete_weekly_plan(plan_id: int, db: Session):
+def delete_weekly_plan(plan_id: int, user_id: int, db: Session):
     """Permanently delete a weekly plan.
 
     Hard delete is used here (not soft delete) because a WeeklyPlan is
@@ -110,7 +118,11 @@ def delete_weekly_plan(plan_id: int, db: Session):
     it's deleted.
     """
 
-    plan = db.query(models.WeeklyPlan).filter(models.WeeklyPlan.id == plan_id).first()
+    plan = (
+        db.query(models.WeeklyPlan)
+        .filter(models.WeeklyPlan.id == plan_id, models.WeeklyPlan.user_id == user_id)
+        .first()
+    )
     if not plan:
         return None
 
@@ -119,14 +131,18 @@ def delete_weekly_plan(plan_id: int, db: Session):
     return plan
 
 
-def delete_weekly_plan_dish(plan_id: int, weekly_plan_dish_id: int, db: Session):
-    """Delete a dish entry from a weekly plan"""
+def delete_weekly_plan_dish(
+    plan_id: int, weekly_plan_dish_id: int, user_id: int, db: Session
+):
+    """Delete a dish entry from a weekly plan owned by the user."""
 
     weekly_dish = (
         db.query(models.WeeklyPlanDish)
+        .join(models.WeeklyPlan)
         .filter(
             models.WeeklyPlanDish.weekly_plan_id == plan_id,
             models.WeeklyPlanDish.id == weekly_plan_dish_id,
+            models.WeeklyPlan.user_id == user_id,
         )
         .first()
     )
@@ -135,5 +151,4 @@ def delete_weekly_plan_dish(plan_id: int, weekly_plan_dish_id: int, db: Session)
 
     db.delete(weekly_dish)
     db.commit()
-
     return weekly_dish
