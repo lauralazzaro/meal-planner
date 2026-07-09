@@ -88,3 +88,15 @@ def sample_weekly_plan(client):
     """Create a sample weekly plan."""
 
     return create_test_weekly_plan(client)
+
+
+def create_test_shopping_list(client, name="Lista test"):
+    """Helper to create a shopping list."""
+    response = client.post("/shopping-lists/", json={"name": name})
+    return response.json()
+
+
+@pytest.fixture
+def sample_shopping_list(client):
+    """Create a sample shopping list."""
+    return create_test_shopping_list(client)
