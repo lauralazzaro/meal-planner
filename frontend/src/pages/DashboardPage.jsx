@@ -8,6 +8,7 @@ function DashboardPage() {
     { to: '/ingredients', label: 'Ingredienti' },
     { to: '/dishes', label: 'Piatti' },
     { to: '/shopping-lists', label: 'Liste della spesa' },
+    { to: '/weekly-plans', label: 'Piani settimanali' }
   ];
 
   return (

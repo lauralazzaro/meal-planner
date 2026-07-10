@@ -6,6 +6,7 @@ import DashboardPage from './pages/DashboardPage';
 import IngredientsPage from './pages/IngredientsPage';
 import DishesPage from './pages/DishesPage';
 import ShoppingListsPage from './pages/ShoppingLists';
+import WeeklyPlansPage from './pages/WeeklyPlansPage';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated } = useAuth();
@@ -46,6 +47,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <ShoppingListsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/weekly-plans"
+        element={
+          <ProtectedRoute>
+            <WeeklyPlansPage />
           </ProtectedRoute>
         }
       />
