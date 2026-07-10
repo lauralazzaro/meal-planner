@@ -11,6 +11,9 @@ function DashboardPage() {
       <p>
         <Link to="/ingredients">Ingredients</Link>
       </p>
+      <p>
+        <Link to="/dishes">Dishes</Link>
+      </p>
       <button onClick={logout}>Logout</button>
     </div>
   );
