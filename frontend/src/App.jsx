@@ -5,6 +5,7 @@ import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import IngredientsPage from './pages/IngredientsPage';
 import DishesPage from './pages/DishesPage';
+import ShoppingListsPage from './pages/ShoppingLists';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated } = useAuth();
@@ -37,6 +38,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <DishesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/shopping-lists"
+        element={
+          <ProtectedRoute>
+            <ShoppingListsPage />
           </ProtectedRoute>
         }
       />
