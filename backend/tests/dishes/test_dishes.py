@@ -1,47 +1,128 @@
-def create_test_ingredient(client, name="Pomodoro", category="vegetables"):
-    """Helper to create an ingredient and return its data."""
-    response = client.post(
-        "/ingredients/",
-        json={"name": name, "shopping_category": category},
-    )
-    
-    return response.json()
+"""Tests for the Dish module: create, read, update, delete,
+validation, and multi-tenant isolation."""
+
+from tests.conftest import create_test_dish
 
 
-def test_create_dish_with_ingredients(client):
-    """Creating a dish should link it to existing ingredients with quantities."""
-    ingredient = create_test_ingredient(client)
+class TestCreateDish:
+    def test_create_dish(self, client, auth_headers, sample_ingredient):
+        data = create_test_dish(client, auth_headers, sample_ingredient["id"])
+        assert data["label"] == "Pasta al pomodoro"
+        assert data["main_ingredient"]["name"] == "Pomodoro"
 
-    response = client.post(
-        "/dishes",
-        json={
-            "name": "Pasta al pomodoro",
-            "meal_type": "both",
-            "nutritional_tags": ["carbs", "vegetables"],
-            "ingredients": [
-                {"ingredient_id": ingredient["id"], "quantity": 200, "unit": "g"}
-            ],
-        },
-    )
+    def test_create_dish_without_auth_returns_401(self, client, sample_ingredient):
+        response = client.post(
+            "/dishes/",
+            json={"label": "Test", "main_ingredient_id": sample_ingredient["id"]},
+        )
+        assert response.status_code == 401
 
-    assert response.status_code == 200
-    data = response.json()
-    assert data["name"] == "Pasta al pomodoro"
-    assert len(data["dish_ingredients"]) == 1
-    assert data["dish_ingredients"][0]["quantity"] == 200
-    assert data["dish_ingredients"][0]["ingredient"]["name"] == "Pomodoro"
+    def test_create_dish_with_nonexistent_ingredient_returns_404(
+        self, client, auth_headers
+    ):
+        response = client.post(
+            "/dishes/",
+            json={"label": "Piatto impossibile", "main_ingredient_id": 9999},
+            headers=auth_headers,
+        )
+        assert response.status_code == 404
+
+    def test_cannot_create_dish_with_other_users_ingredient(
+        self, client, auth_headers, other_user_headers, sample_ingredient
+    ):
+        """A user should not be able to create a dish linked to another user's ingredient."""
+        response = client.post(
+            "/dishes/",
+            json={
+                "label": "Piatto rubato",
+                "main_ingredient_id": sample_ingredient["id"],
+            },
+            headers=other_user_headers,
+        )
+        assert response.status_code == 404
+
+    def test_create_dish_without_main_ingredient_returns_422(
+        self, client, auth_headers
+    ):
+        response = client.post("/dishes/", json={"label": "Test"}, headers=auth_headers)
+        assert response.status_code == 422
 
 
-def test_create_dish_with_nonexistent_ingredient_returns_404(client):
-    """Creating a dish with an ingredient_id that doesn't exist should fail clearly."""
-    response = client.post(
-        "/dishes",
-        json={
-            "name": "Piatto impossibile",
-            "meal_type": "lunch",
-            "nutritional_tags": [],
-            "ingredients": [{"ingredient_id": 9999}],
-        },
-    )
+class TestReadDish:
+    def test_get_dish_by_id(self, client, auth_headers, sample_dish):
+        response = client.get(f"/dishes/{sample_dish['id']}", headers=auth_headers)
+        assert response.status_code == 200
+        assert response.json()["label"] == "Pasta al pomodoro"
 
-    assert response.status_code == 404
+    def test_get_nonexistent_dish_returns_404(self, client, auth_headers):
+        response = client.get("/dishes/9999", headers=auth_headers)
+        assert response.status_code == 404
+
+    def test_get_all_dishes(self, client, auth_headers, sample_dish):
+        response = client.get("/dishes/", headers=auth_headers)
+        assert response.status_code == 200
+        assert len(response.json()) == 1
+
+    def test_cannot_read_other_users_dish(
+        self, client, auth_headers, other_user_headers, sample_dish
+    ):
+        response = client.get(
+            f"/dishes/{sample_dish['id']}", headers=other_user_headers
+        )
+        assert response.status_code == 404
+
+    def test_dish_list_isolated_between_users(
+        self, client, other_user_headers, sample_dish
+    ):
+        response = client.get("/dishes/", headers=other_user_headers)
+        assert response.json() == []
+
+
+class TestUpdateDish:
+    def test_update_dish_label(self, client, auth_headers, sample_dish):
+        response = client.patch(
+            f"/dishes/{sample_dish['id']}",
+            json={"label": "Nuovo nome"},
+            headers=auth_headers,
+        )
+        assert response.status_code == 200
+        assert response.json()["label"] == "Nuovo nome"
+
+    def test_update_nonexistent_dish_returns_404(self, client, auth_headers):
+        response = client.patch(
+            "/dishes/9999", json={"label": "Test"}, headers=auth_headers
+        )
+        assert response.status_code == 404
+
+    def test_cannot_update_other_users_dish(
+        self, client, other_user_headers, sample_dish
+    ):
+        response = client.patch(
+            f"/dishes/{sample_dish['id']}",
+            json={"label": "Hacked"},
+            headers=other_user_headers,
+        )
+        assert response.status_code == 404
+
+
+class TestDeleteDish:
+    def test_delete_dish(self, client, auth_headers, sample_dish):
+        response = client.delete(f"/dishes/{sample_dish['id']}", headers=auth_headers)
+        assert response.status_code == 200
+
+    def test_deleted_dish_not_in_list(self, client, auth_headers, sample_dish):
+        client.delete(f"/dishes/{sample_dish['id']}", headers=auth_headers)
+        response = client.get("/dishes/", headers=auth_headers)
+        assert sample_dish["id"] not in [d["id"] for d in response.json()]
+
+    def test_delete_nonexistent_dish_returns_404(self, client, auth_headers):
+        response = client.delete("/dishes/9999", headers=auth_headers)
+        assert response.status_code == 404
+
+    def test_cannot_delete_other_users_dish(
+        self, client, other_user_headers, sample_dish
+    ):
+        response = client.delete(
+            f"/dishes/{sample_dish['id']}", headers=other_user_headers
+        )
+        assert response.status_code == 404

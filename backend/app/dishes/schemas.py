@@ -1,12 +1,15 @@
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, Field
 from app.ingredients import schemas as ing_schemas
 
 
 class DishBase(BaseModel):
-    label: str | None = None
-    comment: str | None = None
-    main_ingredient_id: int | None = None
-    main_category: str | None = None
+    label: str | None = Field(None, min_length=1, max_length=100)
+    comment: str | None = Field(None, min_length=1, max_length=500)
+    main_ingredient_id: int | None = Field(None, gt=0)
+
+
+class DishCreate(DishBase):
+    main_ingredient_id: int = Field(..., gt=0)
 
 
 class DishOut(DishBase):
@@ -16,21 +19,7 @@ class DishOut(DishBase):
     model_config = {"from_attributes": True}
 
 
-class DishCreate(DishBase):
-    @model_validator(mode="after")
-    def check_main_reference(self):
-        """Exactly one of main_ingredient_id or main_category must be set."""
-        has_ingredient = self.main_ingredient_id is not None
-        has_category = self.main_category is not None
-        if has_ingredient == has_category:  # entrambi True o entrambi False
-            raise ValueError(
-                "Exactly one of main_ingredient_id or main_category must be provided."
-            )
-        return self
-
-
 class DishUpdate(BaseModel):
-    label: str | None = None
-    comment: str | None = None
-    main_ingredient_id: int | None = None
-    main_category: str | None = None
+    label: str | None = Field(None, min_length=1, max_length=100)
+    comment: str | None = Field(None, min_length=1, max_length=500)
+    main_ingredient_id: int | None = Field(None, gt=0)

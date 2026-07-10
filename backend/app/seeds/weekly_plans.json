@@ -1,0 +1,20 @@
+[
+  {
+    "name": "Settimana tipo",
+    "is_default": true,
+    "dishes": [
+      {"day_of_week": "lunedì", "meal_type": "pranzo", "dish_label": "Pasta al sugo"},
+      {"day_of_week": "lunedì", "meal_type": "cena", "dish_label": "Pollo alla griglia"},
+      {"day_of_week": "martedì", "meal_type": "pranzo", "dish_label": "Risotto al sugo"},
+      {"day_of_week": "martedì", "meal_type": "cena", "dish_label": "Pollo al limone"}
+    ]
+  },
+  {
+    "name": "Settimana leggera",
+    "is_default": false,
+    "dishes": [
+      {"day_of_week": "lunedì", "meal_type": "pranzo", "dish_label": "Pasta fredda"},
+      {"day_of_week": "lunedì", "meal_type": "cena", "dish_label": "Pollo fritto"}
+    ]
+  }
+]

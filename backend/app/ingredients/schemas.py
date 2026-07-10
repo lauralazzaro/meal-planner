@@ -1,9 +1,9 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class IngredientBase(BaseModel):
-    name: str
-    shopping_category: str
+    name: str = Field(..., min_length=1, max_length=100)
+    shopping_category: str = Field(..., min_length=1, max_length=50)
 
 
 class IngredientCreate(IngredientBase):
@@ -17,5 +17,5 @@ class IngredientOut(IngredientBase):
 
 
 class IngredientUpdate(BaseModel):
-    name: str | None = None
-    shopping_category: str | None = None
+    name: str | None = Field(None, min_length=1, max_length=100)
+    shopping_category: str | None = Field(None, min_length=1, max_length=50)
