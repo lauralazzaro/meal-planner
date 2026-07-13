@@ -16,11 +16,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(ingredients_router)
-app.include_router(dishes_router)
-app.include_router(weekly_plans_router)
-app.include_router(shopping_lists)
-app.include_router(auth_router)
+app.include_router(ingredients_router, prefix="/api/v1")
+app.include_router(dishes_router, prefix="/api/v1")
+app.include_router(weekly_plans_router, prefix="/api/v1")
+app.include_router(shopping_lists, prefix="/api/v1")
+app.include_router(auth_router, prefix="/api/v1")
 
 
 @app.get("/")
