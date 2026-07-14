@@ -1,7 +1,9 @@
 """Tests for the ShoppingList module: create, read, update, delete,
 item management (pool or free text), cascade delete, and multi-tenant isolation."""
 
-from tests.conftest import create_test_shopping_list
+from tests.conftest import create_test_shopping_list, API_PREFIX
+
+ENDPOINT_SHOPPING_LIST = f"{API_PREFIX}/shopping-lists/"
 
 
 class TestCreateShoppingList:
@@ -11,24 +13,25 @@ class TestCreateShoppingList:
         assert data["items"] == []
 
     def test_create_shopping_list_without_auth_returns_401(self, client):
-        response = client.post("/shopping-lists/", json={"name": "Test"})
+        response = client.post(ENDPOINT_SHOPPING_LIST, json={"name": "Test"})
         assert response.status_code == 401
 
 
 class TestReadShoppingList:
     def test_get_shopping_list_by_id(self, client, auth_headers, sample_shopping_list):
         response = client.get(
-            f"/shopping-lists/{sample_shopping_list['id']}", headers=auth_headers
+            f"{ENDPOINT_SHOPPING_LIST}{sample_shopping_list['id']}",
+            headers=auth_headers,
         )
         assert response.status_code == 200
         assert response.json()["name"] == "Lista test"
 
     def test_get_nonexistent_shopping_list_returns_404(self, client, auth_headers):
-        response = client.get("/shopping-lists/9999", headers=auth_headers)
+        response = client.get(f"{ENDPOINT_SHOPPING_LIST}9999", headers=auth_headers)
         assert response.status_code == 404
 
     def test_get_all_shopping_lists(self, client, auth_headers, sample_shopping_list):
-        response = client.get("/shopping-lists/", headers=auth_headers)
+        response = client.get(ENDPOINT_SHOPPING_LIST, headers=auth_headers)
         assert response.status_code == 200
         assert len(response.json()) == 1
 
@@ -36,7 +39,8 @@ class TestReadShoppingList:
         self, client, other_user_headers, sample_shopping_list
     ):
         response = client.get(
-            f"/shopping-lists/{sample_shopping_list['id']}", headers=other_user_headers
+            f"{ENDPOINT_SHOPPING_LIST}{sample_shopping_list['id']}",
+            headers=other_user_headers,
         )
         assert response.status_code == 404
 
@@ -46,7 +50,7 @@ class TestUpdateShoppingList:
         self, client, auth_headers, sample_shopping_list
     ):
         response = client.patch(
-            f"/shopping-lists/{sample_shopping_list['id']}",
+            f"{ENDPOINT_SHOPPING_LIST}{sample_shopping_list['id']}",
             json={"name": "Lista rinominata"},
             headers=auth_headers,
         )
@@ -65,7 +69,7 @@ class TestAddItemToShoppingList:
         self, client, auth_headers, sample_shopping_list, sample_ingredient
     ):
         response = client.post(
-            f"/shopping-lists/{sample_shopping_list['id']}/items",
+            f"{ENDPOINT_SHOPPING_LIST}{sample_shopping_list['id']}/items",
             json={
                 "ingredient_id": sample_ingredient["id"],
                 "quantity": 2,
@@ -80,7 +84,7 @@ class TestAddItemToShoppingList:
 
     def test_add_free_text_item(self, client, auth_headers, sample_shopping_list):
         response = client.post(
-            f"/shopping-lists/{sample_shopping_list['id']}/items",
+            f"{ENDPOINT_SHOPPING_LIST}{sample_shopping_list['id']}/items",
             json={"name": "Detersivo", "shopping_category": "Altro"},
             headers=auth_headers,
         )
@@ -91,7 +95,7 @@ class TestAddItemToShoppingList:
         self, client, auth_headers, sample_shopping_list
     ):
         response = client.post(
-            f"/shopping-lists/{sample_shopping_list['id']}/items",
+            f"{ENDPOINT_SHOPPING_LIST}{sample_shopping_list['id']}/items",
             json={"quantity": 1},
             headers=auth_headers,
         )
@@ -101,7 +105,7 @@ class TestAddItemToShoppingList:
         self, client, auth_headers, sample_shopping_list
     ):
         response = client.post(
-            f"/shopping-lists/{sample_shopping_list['id']}/items",
+            f"{ENDPOINT_SHOPPING_LIST}{sample_shopping_list['id']}/items",
             json={"ingredient_id": 9999},
             headers=auth_headers,
         )
@@ -117,7 +121,7 @@ class TestAddItemToShoppingList:
     ):
         """A user should not be able to add another user's ingredient to their list."""
         response = client.post(
-            f"/shopping-lists/{sample_shopping_list['id']}/items",
+            f"{ENDPOINT_SHOPPING_LIST}{sample_shopping_list['id']}/items",
             json={"ingredient_id": sample_ingredient["id"]},
             headers=other_user_headers,
         )
@@ -129,13 +133,13 @@ class TestUpdateShoppingListItem:
         self, client, auth_headers, sample_shopping_list, sample_ingredient
     ):
         item = client.post(
-            f"/shopping-lists/{sample_shopping_list['id']}/items",
+            f"{ENDPOINT_SHOPPING_LIST}{sample_shopping_list['id']}/items",
             json={"ingredient_id": sample_ingredient["id"], "quantity": 1},
             headers=auth_headers,
         ).json()
 
         response = client.patch(
-            f"/shopping-lists/{sample_shopping_list['id']}/items/{item['id']}",
+            f"{ENDPOINT_SHOPPING_LIST}{sample_shopping_list['id']}/items/{item['id']}",
             json={"quantity": 5, "is_checked": True},
             headers=auth_headers,
         )
@@ -151,13 +155,13 @@ class TestUpdateShoppingListItem:
         sample_ingredient,
     ):
         item = client.post(
-            f"/shopping-lists/{sample_shopping_list['id']}/items",
+            f"{ENDPOINT_SHOPPING_LIST}{sample_shopping_list['id']}/items",
             json={"ingredient_id": sample_ingredient["id"]},
             headers=auth_headers,
         ).json()
 
         response = client.patch(
-            f"/shopping-lists/{sample_shopping_list['id']}/items/{item['id']}",
+            f"{ENDPOINT_SHOPPING_LIST}{sample_shopping_list['id']}/items/{item['id']}",
             json={"quantity": 5},
             headers=other_user_headers,
         )
@@ -169,13 +173,13 @@ class TestDeleteShoppingListItem:
         self, client, auth_headers, sample_shopping_list, sample_ingredient
     ):
         item = client.post(
-            f"/shopping-lists/{sample_shopping_list['id']}/items",
+            f"{ENDPOINT_SHOPPING_LIST}{sample_shopping_list['id']}/items",
             json={"ingredient_id": sample_ingredient["id"]},
             headers=auth_headers,
         ).json()
 
         response = client.delete(
-            f"/shopping-lists/{sample_shopping_list['id']}/items/{item['id']}",
+            f"{ENDPOINT_SHOPPING_LIST}{sample_shopping_list['id']}/items/{item['id']}",
             headers=auth_headers,
         )
         assert response.status_code == 200
@@ -184,7 +188,7 @@ class TestDeleteShoppingListItem:
         self, client, auth_headers, sample_shopping_list
     ):
         response = client.delete(
-            f"/shopping-lists/{sample_shopping_list['id']}/items/9999",
+            f"{ENDPOINT_SHOPPING_LIST}{sample_shopping_list['id']}/items/9999",
             headers=auth_headers,
         )
         assert response.status_code == 404
@@ -195,18 +199,20 @@ class TestDeleteShoppingList:
         self, client, auth_headers, sample_shopping_list, sample_ingredient
     ):
         client.post(
-            f"/shopping-lists/{sample_shopping_list['id']}/items",
+            f"{ENDPOINT_SHOPPING_LIST}{sample_shopping_list['id']}/items",
             json={"ingredient_id": sample_ingredient["id"]},
             headers=auth_headers,
         )
 
         response = client.delete(
-            f"/shopping-lists/{sample_shopping_list['id']}", headers=auth_headers
+            f"{ENDPOINT_SHOPPING_LIST}{sample_shopping_list['id']}",
+            headers=auth_headers,
         )
         assert response.status_code == 200
 
         get_response = client.get(
-            f"/shopping-lists/{sample_shopping_list['id']}", headers=auth_headers
+            f"{ENDPOINT_SHOPPING_LIST}{sample_shopping_list['id']}",
+            headers=auth_headers,
         )
         assert get_response.status_code == 404
 
@@ -218,6 +224,7 @@ class TestDeleteShoppingList:
         self, client, other_user_headers, sample_shopping_list
     ):
         response = client.delete(
-            f"/shopping-lists/{sample_shopping_list['id']}", headers=other_user_headers
+            f"{ENDPOINT_SHOPPING_LIST}{sample_shopping_list['id']}",
+            headers=other_user_headers,
         )
         assert response.status_code == 404
