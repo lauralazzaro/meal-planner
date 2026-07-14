@@ -1,7 +1,9 @@
 """Tests for the WeeklyPlan module: create, read, update, delete,
 bulk dish creation, business rules, and multi-tenant isolation."""
 
-from tests.conftest import create_test_weekly_plan, create_test_dish
+from tests.conftest import create_test_weekly_plan, create_test_dish, API_PREFIX
+
+ENDPOINT_WEEKLY_PLAN = f"{API_PREFIX}/weekly-plans/"
 
 
 class TestCreateWeeklyPlan:
@@ -12,7 +14,7 @@ class TestCreateWeeklyPlan:
 
     def test_create_weekly_plan_without_auth_returns_401(self, client):
         response = client.post(
-            "/weekly-plans/", json={"name": "Test", "is_default": False}
+            ENDPOINT_WEEKLY_PLAN, json={"name": "Test", "is_default": False}
         )
         assert response.status_code == 401
 
@@ -27,10 +29,10 @@ class TestDefaultUniqueness:
         )
 
         response_first = client.get(
-            f"/weekly-plans/{first['id']}", headers=auth_headers
+            f"{ENDPOINT_WEEKLY_PLAN}{first['id']}", headers=auth_headers
         )
         response_second = client.get(
-            f"/weekly-plans/{second['id']}", headers=auth_headers
+            f"{ENDPOINT_WEEKLY_PLAN}{second['id']}", headers=auth_headers
         )
 
         assert response_first.json()["is_default"] is False
@@ -47,9 +49,11 @@ class TestDefaultUniqueness:
             client, other_user_headers, name="Piano B", is_default=True
         )
 
-        response_a = client.get(f"/weekly-plans/{plan_a['id']}", headers=auth_headers)
+        response_a = client.get(
+            f"{ENDPOINT_WEEKLY_PLAN}{plan_a['id']}", headers=auth_headers
+        )
         response_b = client.get(
-            f"/weekly-plans/{plan_b['id']}", headers=other_user_headers
+            f"{ENDPOINT_WEEKLY_PLAN}{plan_b['id']}", headers=other_user_headers
         )
 
         assert response_a.json()["is_default"] is True
@@ -59,7 +63,7 @@ class TestDefaultUniqueness:
 class TestReadWeeklyPlan:
     def test_get_weekly_plan_by_id(self, client, auth_headers, sample_weekly_plan):
         response = client.get(
-            f"/weekly-plans/{sample_weekly_plan['id']}", headers=auth_headers
+            f"{ENDPOINT_WEEKLY_PLAN}{sample_weekly_plan['id']}", headers=auth_headers
         )
         assert response.status_code == 200
         assert response.json()["name"] == "Settimana test"
@@ -72,7 +76,8 @@ class TestReadWeeklyPlan:
         self, client, other_user_headers, sample_weekly_plan
     ):
         response = client.get(
-            f"/weekly-plans/{sample_weekly_plan['id']}", headers=other_user_headers
+            f"{ENDPOINT_WEEKLY_PLAN}{sample_weekly_plan['id']}",
+            headers=other_user_headers,
         )
         assert response.status_code == 404
 
@@ -84,7 +89,7 @@ class TestBulkAddDishes:
         dish = create_test_dish(client, auth_headers, sample_ingredient["id"])
 
         response = client.post(
-            f"/weekly-plans/{sample_weekly_plan['id']}/dishes",
+            f"{ENDPOINT_WEEKLY_PLAN}{sample_weekly_plan['id']}/dishes",
             json={
                 "dishes": [
                     {
@@ -110,7 +115,7 @@ class TestBulkAddDishes:
         dish = create_test_dish(client, auth_headers, sample_ingredient["id"])
 
         response = client.post(
-            f"/weekly-plans/{sample_weekly_plan['id']}/dishes",
+            f"{ENDPOINT_WEEKLY_PLAN}{sample_weekly_plan['id']}/dishes",
             json={
                 "dishes": [
                     {
@@ -126,7 +131,7 @@ class TestBulkAddDishes:
         assert response.status_code == 404
 
         plan_response = client.get(
-            f"/weekly-plans/{sample_weekly_plan['id']}", headers=auth_headers
+            f"{ENDPOINT_WEEKLY_PLAN}{sample_weekly_plan['id']}", headers=auth_headers
         )
         assert plan_response.json()["dishes"] == []
 
@@ -136,7 +141,7 @@ class TestBulkAddDishes:
         dish = create_test_dish(client, auth_headers, sample_ingredient["id"])
 
         response = client.post(
-            f"/weekly-plans/{sample_weekly_plan['id']}/dishes",
+            f"{ENDPOINT_WEEKLY_PLAN}{sample_weekly_plan['id']}/dishes",
             json={
                 "dishes": [
                     {
@@ -165,7 +170,7 @@ class TestBulkAddDishes:
             client, other_user_headers, name="Piano altro utente"
         )
         response = client.post(
-            f"/weekly-plans/{other_plan['id']}/dishes",
+            f"{ENDPOINT_WEEKLY_PLAN}{other_plan['id']}/dishes",
             json={
                 "dishes": [
                     {
@@ -186,7 +191,7 @@ class TestDeleteWeeklyPlan:
     ):
         dish = create_test_dish(client, auth_headers, sample_ingredient["id"])
         client.post(
-            f"/weekly-plans/{sample_weekly_plan['id']}/dishes",
+            f"{ENDPOINT_WEEKLY_PLAN}{sample_weekly_plan['id']}/dishes",
             json={
                 "dishes": [
                     {
@@ -200,12 +205,12 @@ class TestDeleteWeeklyPlan:
         )
 
         response = client.delete(
-            f"/weekly-plans/{sample_weekly_plan['id']}", headers=auth_headers
+            f"{ENDPOINT_WEEKLY_PLAN}{sample_weekly_plan['id']}", headers=auth_headers
         )
         assert response.status_code == 200
 
         get_response = client.get(
-            f"/weekly-plans/{sample_weekly_plan['id']}", headers=auth_headers
+            f"{ENDPOINT_WEEKLY_PLAN}{sample_weekly_plan['id']}", headers=auth_headers
         )
         assert get_response.status_code == 404
 
@@ -217,6 +222,7 @@ class TestDeleteWeeklyPlan:
         self, client, other_user_headers, sample_weekly_plan
     ):
         response = client.delete(
-            f"/weekly-plans/{sample_weekly_plan['id']}", headers=other_user_headers
+            f"{ENDPOINT_WEEKLY_PLAN}{sample_weekly_plan['id']}",
+            headers=other_user_headers,
         )
         assert response.status_code == 404
