@@ -4,11 +4,12 @@ from app.database import get_db
 from app.dishes import crud, schemas
 from app.auth.models import User
 from app.core.dependencies import get_current_user
+from app.core.route_names import RouteName
 
 router = APIRouter(prefix="/dishes", tags=["dishes"])
 
 
-@router.get("/", response_model=list[schemas.DishOut])
+@router.get("/", response_model=list[schemas.DishOut], name=RouteName.DISH_LIST)
 def read_all_dishes(
     db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
 ):
@@ -17,7 +18,7 @@ def read_all_dishes(
     return crud.get_all_dishes(current_user.id, db)
 
 
-@router.get("/{dish_id}", response_model=schemas.DishOut)
+@router.get("/{dish_id}", response_model=schemas.DishOut, name=RouteName.DISH_DETAIL)
 def read_one_dish(
     dish_id: int,
     db: Session = Depends(get_db),
@@ -31,7 +32,7 @@ def read_one_dish(
     return dish
 
 
-@router.post("/", response_model=schemas.DishOut)
+@router.post("/", response_model=schemas.DishOut, name=RouteName.DISH_CREATE)
 def create_dish(
     dish: schemas.DishCreate,
     db: Session = Depends(get_db),
@@ -45,7 +46,7 @@ def create_dish(
     return new_dish
 
 
-@router.patch("/{dish_id}", response_model=schemas.DishOut)
+@router.patch("/{dish_id}", response_model=schemas.DishOut, name=RouteName.DISH_UPDATE)
 def update_dish(
     dish_id: int,
     dish_update: schemas.DishUpdate,
@@ -61,7 +62,7 @@ def update_dish(
     return dish
 
 
-@router.delete("/{dish_id}")
+@router.delete("/{dish_id}", name=RouteName.DISH_DELETE)
 def delete_dish(
     dish_id: int,
     db: Session = Depends(get_db),
