@@ -28,4 +28,4 @@ app.include_router(auth_router, prefix=settings.API_V1_STR)
 @app.get("/")
 def read_root():
     """Simple health-check endpoint to verify the API is running."""
-    return {"status": "LiteMind backend is running"}
+    return {"status": "Meal Planner backend is running"}
