@@ -13,8 +13,6 @@ TEST_DATABASE_URL = os.environ["TEST_DATABASE_URL"]
 engine = create_engine(TEST_DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-API_PREFIX = "/api/v1"
-
 
 def override_get_db():
     db = TestingSessionLocal()
@@ -81,7 +79,7 @@ def other_user_headers(client):
 def create_test_ingredient(client, headers, name="Pomodoro", category="vegetables"):
     """Helper to create an ingredient and return its data."""
     response = client.post(
-        f"{API_PREFIX}/ingredients/",
+        app.url_path_for(RouteName.INGREDIENT_CREATE),
         json={"name": name, "shopping_category": category},
         headers=headers,
     )
@@ -100,7 +98,7 @@ def sample_ingredient(client, auth_headers):
 def create_test_dish(client, headers, ingredient_id, label="Pasta al pomodoro"):
     """Helper to create a dish linked to an existing ingredient."""
     response = client.post(
-        f"{API_PREFIX}/dishes/",
+        app.url_path_for(RouteName.DISH_CREATE),
         json={"label": label, "main_ingredient_id": ingredient_id},
         headers=headers,
     )
@@ -119,7 +117,7 @@ def sample_dish(client, auth_headers, sample_ingredient):
 def create_test_weekly_plan(client, headers, name="Settimana test", is_default=False):
     """Helper to create a weekly plan."""
     response = client.post(
-        f"{API_PREFIX}/weekly-plans/",
+        app.url_path_for(RouteName.WEEKLY_PLAN_CREATE),
         json={"name": name, "is_default": is_default},
         headers=headers,
     )
@@ -138,7 +136,9 @@ def sample_weekly_plan(client, auth_headers):
 def create_test_shopping_list(client, headers, name="Lista test"):
     """Helper to create a shopping list."""
     response = client.post(
-        f"{API_PREFIX}/shopping-lists/", json={"name": name}, headers=headers
+        app.url_path_for(RouteName.SHOPPING_LIST_CREATE),
+        json={"name": name},
+        headers=headers,
     )
     return response.json()
 

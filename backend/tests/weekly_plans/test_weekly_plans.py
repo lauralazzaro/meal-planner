@@ -1,9 +1,9 @@
 """Tests for the WeeklyPlan module: create, read, update, delete,
 bulk dish creation, business rules, and multi-tenant isolation."""
 
-from tests.conftest import create_test_weekly_plan, create_test_dish, API_PREFIX
-
-ENDPOINT_WEEKLY_PLAN = f"{API_PREFIX}/weekly-plans/"
+from tests.conftest import create_test_weekly_plan, create_test_dish
+from app.main import app
+from app.core.route_names import RouteName
 
 
 class TestCreateWeeklyPlan:
@@ -14,7 +14,8 @@ class TestCreateWeeklyPlan:
 
     def test_create_weekly_plan_without_auth_returns_401(self, client):
         response = client.post(
-            ENDPOINT_WEEKLY_PLAN, json={"name": "Test", "is_default": False}
+            app.url_path_for(RouteName.WEEKLY_PLAN_CREATE),
+            json={"name": "Test", "is_default": False},
         )
         assert response.status_code == 401
 
@@ -29,10 +30,12 @@ class TestDefaultUniqueness:
         )
 
         response_first = client.get(
-            f"{ENDPOINT_WEEKLY_PLAN}{first['id']}", headers=auth_headers
+            app.url_path_for(RouteName.WEEKLY_PLAN_DETAIL, plan_id=first["id"]),
+            headers=auth_headers,
         )
         response_second = client.get(
-            f"{ENDPOINT_WEEKLY_PLAN}{second['id']}", headers=auth_headers
+            app.url_path_for(RouteName.WEEKLY_PLAN_DETAIL, plan_id=second["id"]),
+            headers=auth_headers,
         )
 
         assert response_first.json()["is_default"] is False
@@ -50,10 +53,12 @@ class TestDefaultUniqueness:
         )
 
         response_a = client.get(
-            f"{ENDPOINT_WEEKLY_PLAN}{plan_a['id']}", headers=auth_headers
+            app.url_path_for(RouteName.WEEKLY_PLAN_DETAIL, plan_id=plan_a["id"]),
+            headers=auth_headers,
         )
         response_b = client.get(
-            f"{ENDPOINT_WEEKLY_PLAN}{plan_b['id']}", headers=other_user_headers
+            app.url_path_for(RouteName.WEEKLY_PLAN_DETAIL, plan_id=plan_b["id"]),
+            headers=other_user_headers,
         )
 
         assert response_a.json()["is_default"] is True
@@ -63,20 +68,28 @@ class TestDefaultUniqueness:
 class TestReadWeeklyPlan:
     def test_get_weekly_plan_by_id(self, client, auth_headers, sample_weekly_plan):
         response = client.get(
-            f"{ENDPOINT_WEEKLY_PLAN}{sample_weekly_plan['id']}", headers=auth_headers
+            app.url_path_for(
+                RouteName.WEEKLY_PLAN_DETAIL, plan_id=sample_weekly_plan["id"]
+            ),
+            headers=auth_headers,
         )
         assert response.status_code == 200
         assert response.json()["name"] == "Settimana test"
 
     def test_get_nonexistent_weekly_plan_returns_404(self, client, auth_headers):
-        response = client.get("/weekly-plans/9999", headers=auth_headers)
+        response = client.get(
+            app.url_path_for(RouteName.WEEKLY_PLAN_DETAIL, plan_id=99999),
+            headers=auth_headers,
+        )
         assert response.status_code == 404
 
     def test_cannot_read_other_users_weekly_plan(
         self, client, other_user_headers, sample_weekly_plan
     ):
         response = client.get(
-            f"{ENDPOINT_WEEKLY_PLAN}{sample_weekly_plan['id']}",
+            app.url_path_for(
+                RouteName.WEEKLY_PLAN_DETAIL, plan_id=sample_weekly_plan["id"]
+            ),
             headers=other_user_headers,
         )
         assert response.status_code == 404
@@ -89,7 +102,9 @@ class TestBulkAddDishes:
         dish = create_test_dish(client, auth_headers, sample_ingredient["id"])
 
         response = client.post(
-            f"{ENDPOINT_WEEKLY_PLAN}{sample_weekly_plan['id']}/dishes",
+            app.url_path_for(
+                RouteName.WEEKLY_PLAN_ADD_DISHES, plan_id=sample_weekly_plan["id"]
+            ),
             json={
                 "dishes": [
                     {
@@ -115,7 +130,9 @@ class TestBulkAddDishes:
         dish = create_test_dish(client, auth_headers, sample_ingredient["id"])
 
         response = client.post(
-            f"{ENDPOINT_WEEKLY_PLAN}{sample_weekly_plan['id']}/dishes",
+            app.url_path_for(
+                RouteName.WEEKLY_PLAN_ADD_DISHES, plan_id=sample_weekly_plan["id"]
+            ),
             json={
                 "dishes": [
                     {
@@ -131,7 +148,10 @@ class TestBulkAddDishes:
         assert response.status_code == 404
 
         plan_response = client.get(
-            f"{ENDPOINT_WEEKLY_PLAN}{sample_weekly_plan['id']}", headers=auth_headers
+            app.url_path_for(
+                RouteName.WEEKLY_PLAN_DETAIL, plan_id=sample_weekly_plan["id"]
+            ),
+            headers=auth_headers,
         )
         assert plan_response.json()["dishes"] == []
 
@@ -141,7 +161,9 @@ class TestBulkAddDishes:
         dish = create_test_dish(client, auth_headers, sample_ingredient["id"])
 
         response = client.post(
-            f"{ENDPOINT_WEEKLY_PLAN}{sample_weekly_plan['id']}/dishes",
+            app.url_path_for(
+                RouteName.WEEKLY_PLAN_ADD_DISHES, plan_id=sample_weekly_plan["id"]
+            ),
             json={
                 "dishes": [
                     {
@@ -170,7 +192,9 @@ class TestBulkAddDishes:
             client, other_user_headers, name="Piano altro utente"
         )
         response = client.post(
-            f"{ENDPOINT_WEEKLY_PLAN}{other_plan['id']}/dishes",
+            app.url_path_for(
+                RouteName.WEEKLY_PLAN_ADD_DISHES, plan_id=other_plan["id"]
+            ),
             json={
                 "dishes": [
                     {
@@ -191,7 +215,9 @@ class TestDeleteWeeklyPlan:
     ):
         dish = create_test_dish(client, auth_headers, sample_ingredient["id"])
         client.post(
-            f"{ENDPOINT_WEEKLY_PLAN}{sample_weekly_plan['id']}/dishes",
+            app.url_path_for(
+                RouteName.WEEKLY_PLAN_ADD_DISHES, plan_id=sample_weekly_plan["id"]
+            ),
             json={
                 "dishes": [
                     {
@@ -205,24 +231,35 @@ class TestDeleteWeeklyPlan:
         )
 
         response = client.delete(
-            f"{ENDPOINT_WEEKLY_PLAN}{sample_weekly_plan['id']}", headers=auth_headers
+            app.url_path_for(
+                RouteName.WEEKLY_PLAN_DELETE, plan_id=sample_weekly_plan["id"]
+            ),
+            headers=auth_headers,
         )
         assert response.status_code == 200
 
         get_response = client.get(
-            f"{ENDPOINT_WEEKLY_PLAN}{sample_weekly_plan['id']}", headers=auth_headers
+            app.url_path_for(
+                RouteName.WEEKLY_PLAN_DETAIL, plan_id=sample_weekly_plan["id"]
+            ),
+            headers=auth_headers,
         )
         assert get_response.status_code == 404
 
     def test_delete_nonexistent_weekly_plan_returns_404(self, client, auth_headers):
-        response = client.delete("/weekly-plans/9999", headers=auth_headers)
+        response = client.delete(
+            app.url_path_for(RouteName.WEEKLY_PLAN_DELETE, plan_id=99999),
+            headers=auth_headers,
+        )
         assert response.status_code == 404
 
     def test_cannot_delete_other_users_weekly_plan(
         self, client, other_user_headers, sample_weekly_plan
     ):
         response = client.delete(
-            f"{ENDPOINT_WEEKLY_PLAN}{sample_weekly_plan['id']}",
+            app.url_path_for(
+                RouteName.WEEKLY_PLAN_DELETE, plan_id=sample_weekly_plan["id"]
+            ),
             headers=other_user_headers,
         )
         assert response.status_code == 404
