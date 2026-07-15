@@ -41,3 +41,6 @@ class RouteName(StrEnum):
     SHOPPING_LIST_DETAIL = "shopping_lists:detail"
     SHOPPING_LIST_UPDATE = "shopping_lists:update"
     SHOPPING_LIST_DELETE = "shopping_lists:delete"
+    SHOPPING_LIST_ADD_ITEM = "shopping_lists:add_item"
+    SHOPPING_LIST_UPDATE_ITEM = "shopping_lists:update_item"
+    SHOPPING_LIST_DELETE_ITEM = "shopping_lists:delete_item"
