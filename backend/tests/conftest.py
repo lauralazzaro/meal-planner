@@ -6,6 +6,7 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 from app.database import Base, get_db
+from app.core.route_names import RouteName
 
 TEST_DATABASE_URL = os.environ["TEST_DATABASE_URL"]
 
@@ -44,12 +45,17 @@ def client():
 
 
 def register_and_login(client, email="test@test.com", password="password123"):
-    """Register a new user and log in, returning the auth headers."""
+    """Register a new user and log in, returning the auth headers.
+
+    Uses reverse routing (app.url_path_for) so these helpers stay correct even
+    if the auth route paths are renamed on the router.
+    """
     client.post(
-        f"{API_PREFIX}/auth/register", json={"email": email, "password": password}
+        app.url_path_for(RouteName.AUTH_REGISTER),
+        json={"email": email, "password": password},
     )
     response = client.post(
-        f"{API_PREFIX}/auth/login",
+        app.url_path_for(RouteName.AUTH_LOGIN),
         data={"username": email, "password": password},
     )
     token = response.json()["access_token"]

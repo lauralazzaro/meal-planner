@@ -2,13 +2,16 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.shopping_list import crud, schemas
-from app.auth.security import get_current_user
 from app.auth.models import User
+from app.core.dependencies import get_current_user
+from app.core.route_names import RouteName
 
 router = APIRouter(prefix="/shopping-lists", tags=["shopping-lists"])
 
 
-@router.get("/", response_model=list[schemas.ShoppingListOut])
+@router.get(
+    "/", response_model=list[schemas.ShoppingListOut], name=RouteName.SHOPPING_LIST_LIST
+)
 def read_all_shopping_lists(
     db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
 ):
@@ -17,7 +20,11 @@ def read_all_shopping_lists(
     return crud.get_all_shopping_lists(current_user.id, db)
 
 
-@router.get("/{list_id}", response_model=schemas.ShoppingListOut)
+@router.get(
+    "/{list_id}",
+    response_model=schemas.ShoppingListOut,
+    name=RouteName.SHOPPING_LIST_DETAIL,
+)
 def read_one_shopping_list(
     list_id: int,
     db: Session = Depends(get_db),
@@ -31,7 +38,9 @@ def read_one_shopping_list(
     return shopping_list
 
 
-@router.post("/", response_model=schemas.ShoppingListOut)
+@router.post(
+    "/", response_model=schemas.ShoppingListOut, name=RouteName.SHOPPING_LIST_CREATE
+)
 def add_shopping_list(
     shopping_list: schemas.ShoppingListCreate,
     db: Session = Depends(get_db),
@@ -42,7 +51,11 @@ def add_shopping_list(
     return crud.create_shopping_list(shopping_list, current_user.id, db)
 
 
-@router.post("/{list_id}/items", response_model=schemas.ShoppingListItemOut)
+@router.post(
+    "/{list_id}/items",
+    response_model=schemas.ShoppingListItemOut,
+    name=RouteName.SHOPPING_LIST_ADD_ITEM,
+)
 def add_item_to_shopping_list(
     list_id: int,
     item: schemas.ShoppingListItemCreate,
@@ -59,7 +72,11 @@ def add_item_to_shopping_list(
     return added_item
 
 
-@router.patch("/{list_id}", response_model=schemas.ShoppingListOut)
+@router.patch(
+    "/{list_id}",
+    response_model=schemas.ShoppingListOut,
+    name=RouteName.SHOPPING_LIST_UPDATE,
+)
 def update_shopping_list(
     list_id: int,
     shopping_list: schemas.ShoppingListUpdate,
@@ -76,7 +93,7 @@ def update_shopping_list(
     return updated_list
 
 
-@router.delete("/{list_id}")
+@router.delete("/{list_id}", name=RouteName.SHOPPING_LIST_DELETE)
 def delete_shopping_list(
     list_id: int,
     db: Session = Depends(get_db),
@@ -89,7 +106,7 @@ def delete_shopping_list(
     return {"status": "Shopping list deleted."}
 
 
-@router.delete("/{list_id}/items/{item_id}")
+@router.delete("/{list_id}/items/{item_id}", name=RouteName.SHOPPING_LIST_DELETE_ITEM)
 def delete_item_from_list(
     list_id: int,
     item_id: int,
@@ -108,7 +125,11 @@ def delete_item_from_list(
     return {"status": "Item deleted from shopping list"}
 
 
-@router.patch("/{list_id}/items/{item_id}", response_model=schemas.ShoppingListItemOut)
+@router.patch(
+    "/{list_id}/items/{item_id}",
+    response_model=schemas.ShoppingListItemOut,
+    name=RouteName.SHOPPING_LIST_UPDATE_ITEM,
+)
 def update_item_from_list(
     list_id: int,
     item_id: int,
