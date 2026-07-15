@@ -5,11 +5,14 @@ from app.database import get_db
 from app.ingredients import crud, schemas
 from app.auth.models import User
 from app.core.dependencies import get_current_user
+from app.core.route_names import RouteName
 
 router = APIRouter(prefix="/ingredients", tags=["ingredients"])
 
 
-@router.get("/", response_model=list[schemas.IngredientOut])
+@router.get(
+    "/", response_model=list[schemas.IngredientOut], name=RouteName.INGREDIENT_LIST
+)
 def read_all_ingredients(
     db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
 ):
@@ -17,7 +20,11 @@ def read_all_ingredients(
     return crud.get_all_ingredients(current_user.id, db)
 
 
-@router.get("/{ingredient_id}", response_model=schemas.IngredientOut)
+@router.get(
+    "/{ingredient_id}",
+    response_model=schemas.IngredientOut,
+    name=RouteName.INGREDIENT_DETAIL,
+)
 def read_ingredient(
     ingredient_id: int,
     db: Session = Depends(get_db),
@@ -30,7 +37,9 @@ def read_ingredient(
     return ingredient
 
 
-@router.post("/", response_model=schemas.IngredientOut)
+@router.post(
+    "/", response_model=schemas.IngredientOut, name=RouteName.INGREDIENT_CREATE
+)
 def create_ingredient(
     ingredient: schemas.IngredientCreate,
     db: Session = Depends(get_db),
@@ -45,7 +54,11 @@ def create_ingredient(
         )
 
 
-@router.patch("/{ingredient_id}", response_model=schemas.IngredientOut)
+@router.patch(
+    "/{ingredient_id}",
+    response_model=schemas.IngredientOut,
+    name=RouteName.INGREDIENT_UPDATE,
+)
 def update_ingredient(
     ingredient_id: int,
     ingredient_update: schemas.IngredientUpdate,
@@ -61,7 +74,7 @@ def update_ingredient(
     return ingredient
 
 
-@router.delete("/{ingredient_id}")
+@router.delete("/{ingredient_id}", name=RouteName.INGREDIENT_DELETE)
 def delete_ingredient(
     ingredient_id: int,
     db: Session = Depends(get_db),
