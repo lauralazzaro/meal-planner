@@ -1,12 +1,14 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.core.config import settings
 from app.ingredients.router import router as ingredients_router
 from app.dishes.router import router as dishes_router
 from app.weekly_plans.router import router as weekly_plans_router
-from app.shopping_list.router import router as shopping_lists
+from app.shopping_list.router import router as shopping_lists_router
 from app.auth.router import router as auth_router
-from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI()
+app = FastAPI(title=settings.PROJECT_NAME)
 
 app.add_middleware(
     CORSMiddleware,
@@ -16,15 +18,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(ingredients_router, prefix="/api/v1")
-app.include_router(dishes_router, prefix="/api/v1")
-app.include_router(weekly_plans_router, prefix="/api/v1")
-app.include_router(shopping_lists, prefix="/api/v1")
-app.include_router(auth_router, prefix="/api/v1")
+app.include_router(ingredients_router, prefix=settings.API_V1_STR)
+app.include_router(dishes_router, prefix=settings.API_V1_STR)
+app.include_router(weekly_plans_router, prefix=settings.API_V1_STR)
+app.include_router(shopping_lists_router, prefix=settings.API_V1_STR)
+app.include_router(auth_router, prefix=settings.API_V1_STR)
 
 
 @app.get("/")
 def read_root():
     """Simple health-check endpoint to verify the API is running."""
-
     return {"status": "LiteMind backend is running"}

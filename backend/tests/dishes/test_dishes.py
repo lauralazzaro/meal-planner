@@ -104,7 +104,7 @@ class TestUpdateDish:
         self, client, other_user_headers, sample_dish
     ):
         response = client.patch(
-            f"ENDPOINT_DISHES{sample_dish['id']}",
+            f"{ENDPOINT_DISHES}{sample_dish['id']}",
             json={"label": "Hacked"},
             headers=other_user_headers,
         )

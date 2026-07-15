@@ -4,9 +4,10 @@ sqlalchemy
 psycopg2-binary
 alembic
 pytest
-httpx2
+httpx
 black
 bcrypt==4.0.1
 python-jose[cryptography]
 email-validator
 python-multipart
+pydantic_settings
