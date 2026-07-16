@@ -1,7 +1,13 @@
 # Meal Planner
 
+![CI](https://github.com/lauralazzaro/meal-planner/actions/workflows/ci.yml/badge.svg)
+![Python](https://img.shields.io/badge/python-3.12-blue)
+![Code style: black](https://img.shields.io/badge/code%20style-black-000000)
+![License: MIT](https://img.shields.io/badge/license-MIT-green)
+
 A personal meal planning app built to practice and demonstrate Python/FastAPI 
 development skills.
+
 
 ## Features
 
