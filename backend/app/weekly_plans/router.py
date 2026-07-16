@@ -4,11 +4,14 @@ from app.database import get_db
 from app.weekly_plans import crud, schemas
 from app.auth.models import User
 from app.core.dependencies import get_current_user
+from app.core.route_names import RouteName
 
 router = APIRouter(prefix="/weekly-plans", tags=["weekly-plans"])
 
 
-@router.get("/", response_model=list[schemas.WeeklyPlanOut])
+@router.get(
+    "/", response_model=list[schemas.WeeklyPlanOut], name=RouteName.WEEKLY_PLAN_LIST
+)
 def read_all_weekly_plans(
     db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
 ):
@@ -17,7 +20,11 @@ def read_all_weekly_plans(
     return crud.get_all_weekly_plans(current_user.id, db)
 
 
-@router.get("/{plan_id}", response_model=schemas.WeeklyPlanOut)
+@router.get(
+    "/{plan_id}",
+    response_model=schemas.WeeklyPlanOut,
+    name=RouteName.WEEKLY_PLAN_DETAIL,
+)
 def read_one_plan_by_id(
     plan_id: int,
     db: Session = Depends(get_db),
@@ -33,7 +40,9 @@ def read_one_plan_by_id(
     return plan
 
 
-@router.post("/", response_model=schemas.WeeklyPlanOut)
+@router.post(
+    "/", response_model=schemas.WeeklyPlanOut, name=RouteName.WEEKLY_PLAN_CREATE
+)
 def add_weekly_plan(
     weekly_plan: schemas.WeeklyPlanCreate,
     db: Session = Depends(get_db),
@@ -42,7 +51,11 @@ def add_weekly_plan(
     return crud.create_weekly_plan(weekly_plan, current_user.id, db)
 
 
-@router.patch("/{plan_id}", response_model=schemas.WeeklyPlanOut)
+@router.patch(
+    "/{plan_id}",
+    response_model=schemas.WeeklyPlanOut,
+    name=RouteName.WEEKLY_PLAN_UPDATE,
+)
 def update_plan(
     plan_id: int,
     plan_update: schemas.WeeklyPlanUpdate,
@@ -59,7 +72,7 @@ def update_plan(
     return updated_plan
 
 
-@router.delete("/{plan_id}")
+@router.delete("/{plan_id}", name=RouteName.WEEKLY_PLAN_DELETE)
 def delete_weekly_plan(
     plan_id: int,
     db: Session = Depends(get_db),
@@ -75,7 +88,11 @@ def delete_weekly_plan(
     return {"status": "Weekly plan deleted"}
 
 
-@router.post("/{plan_id}/dishes", response_model=list[schemas.WeeklyPlanDishOut])
+@router.post(
+    "/{plan_id}/dishes",
+    response_model=list[schemas.WeeklyPlanDishOut],
+    name=RouteName.WEEKLY_PLAN_ADD_DISHES,
+)
 def add_dishes_to_plan(
     plan_id: int,
     payload: schemas.WeeklyPlanDishBulkCreate,
@@ -92,7 +109,9 @@ def add_dishes_to_plan(
     return entries
 
 
-@router.delete("/{plan_id}/dishes/{weekly_plan_dish_id}")
+@router.delete(
+    "/{plan_id}/dishes/{weekly_plan_dish_id}", name=RouteName.WEEKLY_PLAN_DELETE_DISH
+)
 def delete_dish_from_plan(
     plan_id: int,
     weekly_plan_dish_id: int,

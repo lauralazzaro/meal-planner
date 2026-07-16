@@ -1,12 +1,13 @@
 import apiClient from './client';
+const BASE = '/weekly-plans'
 
 export async function getWeeklyPlans() {
-  const response = await apiClient.get('/weekly-plans/');
+  const response = await apiClient.get(`${BASE}`);
   return response.data;
 }
 
 export async function createWeeklyPlan(name, isDefault) {
-  const response = await apiClient.post('/weekly-plans/', {
+  const response = await apiClient.post(`${BASE}`, {
     name,
     is_default: isDefault,
   });
@@ -14,16 +15,16 @@ export async function createWeeklyPlan(name, isDefault) {
 }
 
 export async function deleteWeeklyPlan(id) {
-  await apiClient.delete(`/weekly-plans/${id}`);
+  await apiClient.delete(`${BASE}/${id}`);
 }
 
 export async function addDishesToPlan(planId, dishEntries) {
-  const response = await apiClient.post(`/weekly-plans/${planId}/dishes`, {
+  const response = await apiClient.post(`${BASE}/${planId}/dishes`, {
     dishes: dishEntries,
   });
   return response.data;
 }
 
 export async function deleteDishFromPlan(planId, entryId) {
-  await apiClient.delete(`/weekly-plans/${planId}/dishes/${entryId}`);
+  await apiClient.delete(`${BASE}/${planId}/dishes/${entryId}`);
 }

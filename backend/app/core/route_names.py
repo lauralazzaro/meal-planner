@@ -34,6 +34,8 @@ class RouteName(StrEnum):
     WEEKLY_PLAN_DETAIL = "weekly_plans:detail"
     WEEKLY_PLAN_UPDATE = "weekly_plans:update"
     WEEKLY_PLAN_DELETE = "weekly_plans:delete"
+    WEEKLY_PLAN_ADD_DISHES = "weekly_plans:add_dishes"
+    WEEKLY_PLAN_DELETE_DISH = "weekly_plans:delete_dish"
 
     # --- shopping lists ---
     SHOPPING_LIST_LIST = "shopping_lists:list"
