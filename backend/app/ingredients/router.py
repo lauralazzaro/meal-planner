@@ -1,3 +1,4 @@
+from app.core.pagination import Page, PaginationParams, pagination_params
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
@@ -11,13 +12,20 @@ router = APIRouter(prefix="/ingredients", tags=["ingredients"])
 
 
 @router.get(
-    "/", response_model=list[schemas.IngredientOut], name=RouteName.INGREDIENT_LIST
+    "/",
+    response_model=Page[schemas.IngredientOut],
+    name=RouteName.INGREDIENT_LIST,
 )
 def read_all_ingredients(
-    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    params: PaginationParams = Depends(pagination_params),
 ):
     """Return all ingredients owned by the current user."""
-    return crud.get_all_ingredients(current_user.id, db)
+    items, next_cursor, has_next = crud.get_paginated_ingredients(
+        current_user.id, db, params
+    )
+    return Page(items=items, next_cursor=next_cursor, has_next=has_next)
 
 
 @router.get(

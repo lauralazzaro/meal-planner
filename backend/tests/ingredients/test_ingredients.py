@@ -66,6 +66,7 @@ class TestReadIngredient:
             headers=auth_headers,
         )
         assert response.status_code == 200
+
         assert response.json()["name"] == "Pomodoro"
 
     def test_get_nonexistent_ingredient_returns_404(self, client, auth_headers):
@@ -80,10 +81,10 @@ class TestReadIngredient:
             app.url_path_for(RouteName.INGREDIENT_LIST), headers=auth_headers
         )
         assert response.status_code == 200
-        assert len(response.json()) == 1
+        assert len(response.json()["items"]) == 1
 
     def test_cannot_read_other_users_ingredient(
-        self, client, auth_headers, other_user_headers, sample_ingredient
+        self, client, other_user_headers, sample_ingredient
     ):
         """A user should not be able to fetch another user's ingredient by id."""
         response = client.get(
@@ -95,13 +96,56 @@ class TestReadIngredient:
         assert response.status_code == 404
 
     def test_ingredient_list_isolated_between_users(
-        self, client, auth_headers, other_user_headers, sample_ingredient
+        self,
+        client,
+        other_user_headers,
     ):
         """A user's ingredient list should not include another user's ingredients."""
         response = client.get(
             app.url_path_for(RouteName.INGREDIENT_LIST), headers=other_user_headers
         )
-        assert response.json() == []
+
+        assert response.json() == {
+            "items": [],
+            "next_cursor": None,
+            "has_next": False,
+        }
+
+    def test_get_paginated_ingredients(
+        self,
+        client,
+        auth_headers,
+    ):
+        """Get a paginated list of ingredients"""
+
+        create_test_ingredient(client, auth_headers, name="Carota")
+        create_test_ingredient(client, auth_headers, name="Aglio")
+        create_test_ingredient(client, auth_headers, name="Basilico")
+
+        response = client.get(
+            app.url_path_for(RouteName.INGREDIENT_LIST),
+            params={"limit": 2},
+            headers=auth_headers,
+        )
+
+        data = response.json()
+        names = [item["name"] for item in data["items"]]
+
+        assert len(names) == 2
+        assert names == ["Aglio", "Basilico"]
+        assert response.json()["has_next"] is True
+
+        response2 = client.get(
+            app.url_path_for(RouteName.INGREDIENT_LIST),
+            params={"after": data["next_cursor"]},
+            headers=auth_headers,
+        )
+
+        data2 = response2.json()
+        names2 = [item["name"] for item in data2["items"]]
+
+        assert names2 == ["Carota"]
+        assert data2["has_next"] is False
 
 
 class TestUpdateIngredient:
@@ -125,7 +169,7 @@ class TestUpdateIngredient:
         assert response.status_code == 404
 
     def test_cannot_update_other_users_ingredient(
-        self, client, auth_headers, other_user_headers, sample_ingredient
+        self, client, other_user_headers, sample_ingredient
     ):
         response = client.patch(
             app.url_path_for(
@@ -159,7 +203,9 @@ class TestDeleteIngredient:
         response = client.get(
             app.url_path_for(RouteName.INGREDIENT_LIST), headers=auth_headers
         )
-        assert sample_ingredient["id"] not in [i["id"] for i in response.json()]
+        assert sample_ingredient["id"] not in [
+            i["id"] for i in response.json()["items"]
+        ]
 
     def test_delete_nonexistent_ingredient_returns_404(self, client, auth_headers):
         response = client.delete(
@@ -169,7 +215,7 @@ class TestDeleteIngredient:
         assert response.status_code == 404
 
     def test_cannot_delete_other_users_ingredient(
-        self, client, auth_headers, other_user_headers, sample_ingredient
+        self, client, other_user_headers, sample_ingredient
     ):
         response = client.delete(
             app.url_path_for(

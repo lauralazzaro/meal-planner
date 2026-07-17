@@ -1,7 +1,12 @@
+from app.core.pagination import PaginationParams
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from app.ingredients import models, schemas
-from app.core.crud_helpers import get_owned_record, get_all_owned_records
+from app.core.crud_helpers import (
+    get_owned_record,
+    get_all_owned_records,
+    get_owned_paginated_records,
+)
 
 
 def get_ingredient(ingredient_id: int, user_id: int, db: Session):
@@ -12,6 +17,12 @@ def get_ingredient(ingredient_id: int, user_id: int, db: Session):
 def get_all_ingredients(user_id: int, db: Session):
     """Return all non-deleted ingredients owned by the given user."""
     return get_all_owned_records(models.Ingredient, user_id, db)
+
+
+def get_paginated_ingredients(user_id, db, params):
+    return get_owned_paginated_records(
+        models.Ingredient, user_id, db, params, sort_field="name"
+    )
 
 
 def create_ingredient(ingredient: schemas.IngredientCreate, user_id: int, db: Session):
@@ -57,3 +68,10 @@ def delete_ingredient(ingredient_id: int, user_id: int, db: Session):
     db.commit()
     db.refresh(ingredient)
     return ingredient
+
+
+# ingredients/crud.py
+def get_paginated_ingredients(user_id, db, params):
+    return get_owned_paginated_records(
+        models.Ingredient, user_id, db, params, sort_field="name"
+    )
