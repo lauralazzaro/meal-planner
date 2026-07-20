@@ -5,17 +5,24 @@ from app.dishes import crud, schemas
 from app.auth.models import User
 from app.core.dependencies import get_current_user
 from app.core.route_names import RouteName
+from app.core.pagination import PaginationParams, pagination_params, Page
 
 router = APIRouter(prefix="/dishes", tags=["dishes"])
 
 
-@router.get("/", response_model=list[schemas.DishOut], name=RouteName.DISH_LIST)
+@router.get("/", response_model=Page[schemas.DishOut], name=RouteName.DISH_LIST)
 def read_all_dishes(
-    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    params: PaginationParams = Depends(pagination_params),
 ):
     """Return all non-deleted dishes."""
 
-    return crud.get_all_dishes(current_user.id, db)
+    items, next_cursor, has_next = crud.get_paginated_dishes(
+        current_user.id, db, params
+    )
+
+    return Page(items=items, next_cursor=next_cursor, has_next=has_next)
 
 
 @router.get("/{dish_id}", response_model=schemas.DishOut, name=RouteName.DISH_DETAIL)

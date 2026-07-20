@@ -1,4 +1,3 @@
-from app.core.pagination import PaginationParams
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from app.ingredients import models, schemas
