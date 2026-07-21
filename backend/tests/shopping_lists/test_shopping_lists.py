@@ -42,7 +42,7 @@ class TestReadShoppingList:
             app.url_path_for(RouteName.SHOPPING_LIST_LIST), headers=auth_headers
         )
         assert response.status_code == 200
-        assert len(response.json()) == 1
+        assert len(response.json()["items"]) == 1
 
     def test_cannot_read_other_users_shopping_list(
         self, client, other_user_headers, sample_shopping_list

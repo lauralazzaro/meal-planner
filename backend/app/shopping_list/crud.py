@@ -1,7 +1,11 @@
 from sqlalchemy.orm import Session
 from app.shopping_list import models, schemas
 from app.ingredients.models import Ingredient
-from app.core.crud_helpers import get_owned_record, get_all_owned_records
+from app.core.crud_helpers import (
+    get_owned_record,
+    get_all_owned_records,
+    get_owned_paginated_records,
+)
 
 
 def create_shopping_list(
@@ -19,6 +23,12 @@ def create_shopping_list(
 def get_all_shopping_lists(user_id: int, db: Session):
     """Return all shopping lists."""
     return get_all_owned_records(models.ShoppingList, user_id, db)
+
+
+def get_paginated_shopping_list(user_id, db, params):
+    return get_owned_paginated_records(
+        models.ShoppingList, user_id, db, params, sort_field="id"
+    )
 
 
 def get_shopping_list(shopping_list_id: int, user_id: int, db: Session):

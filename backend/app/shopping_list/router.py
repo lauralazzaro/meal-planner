@@ -5,19 +5,25 @@ from app.shopping_list import crud, schemas
 from app.auth.models import User
 from app.core.dependencies import get_current_user
 from app.core.route_names import RouteName
+from app.core.pagination import Page, PaginationParams, pagination_params
 
 router = APIRouter(prefix="/shopping-lists", tags=["shopping-lists"])
 
 
 @router.get(
-    "/", response_model=list[schemas.ShoppingListOut], name=RouteName.SHOPPING_LIST_LIST
+    "/", response_model=Page[schemas.ShoppingListOut], name=RouteName.SHOPPING_LIST_LIST
 )
 def read_all_shopping_lists(
-    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    params: PaginationParams = Depends(pagination_params),
 ):
     """Return all shopping lists."""
 
-    return crud.get_all_shopping_lists(current_user.id, db)
+    items, next_cursor, has_next = crud.get_paginated_shopping_list(
+        current_user.id, db, params
+    )
+    return Page(items=items, next_cursor=next_cursor, has_next=has_next)
 
 
 @router.get(

@@ -11,7 +11,7 @@ router = APIRouter(prefix="/weekly-plans", tags=["weekly-plans"])
 
 
 @router.get(
-    "/", response_model=list[schemas.WeeklyPlanOut], name=RouteName.WEEKLY_PLAN_LIST
+    "/", response_model=Page[schemas.WeeklyPlanOut], name=RouteName.WEEKLY_PLAN_LIST
 )
 def read_all_weekly_plans(
     db: Session = Depends(get_db),
