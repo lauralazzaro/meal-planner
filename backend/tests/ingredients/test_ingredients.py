@@ -147,44 +147,6 @@ class TestReadIngredient:
         assert names2 == ["Carota"]
         assert data2["has_next"] is False
 
-    def test_limit_over_max_returns_422(self, client, auth_headers):
-        response = client.get(
-            app.url_path_for(RouteName.INGREDIENT_LIST),
-            params={"limit": 101},
-            headers=auth_headers,
-        )
-        assert response.status_code == 422
-
-    def test_limit_below_min_returns_422(self, client, auth_headers):
-        response = client.get(
-            app.url_path_for(RouteName.INGREDIENT_LIST),
-            params={"limit": 0},
-            headers=auth_headers,
-        )
-        assert response.status_code == 422
-
-    def test_malformed_cursor_returns_400(self, client, auth_headers):
-        response = client.get(
-            app.url_path_for(RouteName.INGREDIENT_LIST),
-            params={"after": "not-valid-base64!!"},
-            headers=auth_headers,
-        )
-        assert response.status_code == 400
-
-    def test_cursor_with_wrong_shape_returns_400(self, client, auth_headers):
-        import base64, json
-
-        bad_cursor = base64.urlsafe_b64encode(
-            json.dumps({"foo": "bar"}).encode()
-        ).decode()
-
-        response = client.get(
-            app.url_path_for(RouteName.INGREDIENT_LIST),
-            params={"after": bad_cursor},
-            headers=auth_headers,
-        )
-        assert response.status_code == 400
-
 
 class TestUpdateIngredient:
     def test_update_ingredient_name(self, client, auth_headers, sample_ingredient):

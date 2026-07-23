@@ -92,6 +92,19 @@ class TestReadDish:
         )
         assert response.json()["items"] == []
 
+    def test_paginated_dishes(self, client, auth_headers, sample_ingredient):
+        create_test_dish(client, auth_headers, sample_ingredient["id"], "Risotto")
+        create_test_dish(client, auth_headers, sample_ingredient["id"], "Lasagna")
+        create_test_dish(client, auth_headers, sample_ingredient["id"], "Pizza")
+
+        response = client.get(
+            app.url_path_for(RouteName.DISH_LIST),
+            params={"limit": 2},
+            headers=auth_headers,
+        )
+        assert response.status_code == 200
+        assert len(response.json()["items"]) == 2
+
 
 class TestUpdateDish:
     def test_update_dish_label(self, client, auth_headers, sample_dish):
