@@ -5,19 +5,23 @@ from app.weekly_plans import crud, schemas
 from app.auth.models import User
 from app.core.dependencies import get_current_user
 from app.core.route_names import RouteName
+from app.core.pagination import Page, PaginationParams, pagination_params
 
 router = APIRouter(prefix="/weekly-plans", tags=["weekly-plans"])
 
 
 @router.get(
-    "/", response_model=list[schemas.WeeklyPlanOut], name=RouteName.WEEKLY_PLAN_LIST
+    "/", response_model=Page[schemas.WeeklyPlanOut], name=RouteName.WEEKLY_PLAN_LIST
 )
 def read_all_weekly_plans(
-    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    params: PaginationParams = Depends(pagination_params),
 ):
     """Return all weekly plans."""
 
-    return crud.get_all_weekly_plans(current_user.id, db)
+    items, next_cursor, has_next = crud.get_paginated_plans(current_user.id, db, params)
+    return Page(items=items, next_cursor=next_cursor, has_next=has_next)
 
 
 @router.get(

@@ -1,6 +1,10 @@
 from sqlalchemy.orm import Session
 from app.weekly_plans import models, schemas
-from app.core.crud_helpers import get_owned_record, get_all_owned_records
+from app.core.crud_helpers import (
+    get_owned_record,
+    get_all_owned_records,
+    get_owned_paginated_records,
+)
 
 
 def get_one_weekly_plan(weekly_plan_id: int, user_id: int, db: Session):
@@ -11,6 +15,12 @@ def get_one_weekly_plan(weekly_plan_id: int, user_id: int, db: Session):
 
 def get_all_weekly_plans(user_id: int, db: Session):
     return get_all_owned_records(models.WeeklyPlan, user_id, db, True)
+
+
+def get_paginated_plans(user_id, db, params):
+    return get_owned_paginated_records(
+        models.WeeklyPlan, user_id, db, params, sort_field="id"
+    )
 
 
 def create_weekly_plan(

@@ -30,7 +30,7 @@ class TestCreateDish:
         assert response.status_code == 404
 
     def test_cannot_create_dish_with_other_users_ingredient(
-        self, client, auth_headers, other_user_headers, sample_ingredient
+        self, client, other_user_headers, sample_ingredient
     ):
         """A user should not be able to create a dish linked to another user's ingredient."""
         response = client.post(
@@ -75,10 +75,10 @@ class TestReadDish:
             app.url_path_for(RouteName.DISH_LIST), headers=auth_headers
         )
         assert response.status_code == 200
-        assert len(response.json()) == 1
+        assert len(response.json()["items"]) == 1
 
     def test_cannot_read_other_users_dish(
-        self, client, auth_headers, other_user_headers, sample_dish
+        self, client, other_user_headers, sample_dish
     ):
         response = client.get(
             app.url_path_for(RouteName.DISH_DETAIL, dish_id=sample_dish["id"]),
@@ -86,13 +86,24 @@ class TestReadDish:
         )
         assert response.status_code == 404
 
-    def test_dish_list_isolated_between_users(
-        self, client, other_user_headers, sample_dish
-    ):
+    def test_dish_list_isolated_between_users(self, client, other_user_headers):
         response = client.get(
             app.url_path_for(RouteName.DISH_LIST), headers=other_user_headers
         )
-        assert response.json() == []
+        assert response.json()["items"] == []
+
+    def test_paginated_dishes(self, client, auth_headers, sample_ingredient):
+        create_test_dish(client, auth_headers, sample_ingredient["id"], "Risotto")
+        create_test_dish(client, auth_headers, sample_ingredient["id"], "Lasagna")
+        create_test_dish(client, auth_headers, sample_ingredient["id"], "Pizza")
+
+        response = client.get(
+            app.url_path_for(RouteName.DISH_LIST),
+            params={"limit": 2},
+            headers=auth_headers,
+        )
+        assert response.status_code == 200
+        assert len(response.json()["items"]) == 2
 
 
 class TestUpdateDish:
@@ -140,7 +151,7 @@ class TestDeleteDish:
         response = client.get(
             app.url_path_for(RouteName.DISH_LIST), headers=auth_headers
         )
-        assert sample_dish["id"] not in [d["id"] for d in response.json()]
+        assert sample_dish["id"] not in [d["id"] for d in response.json()["items"]]
 
     def test_delete_nonexistent_dish_returns_404(self, client, auth_headers):
         response = client.delete(
