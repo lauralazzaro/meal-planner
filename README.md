@@ -14,6 +14,7 @@ development skills.
 - Weekly meal planning with reusable dishes
 - Ingredient pool organized by category
 - Shopping list management
+- Cursor-based pagination on list endpoints
 
 ## Tech Stack
 
@@ -21,7 +22,7 @@ development skills.
 - **Database**: PostgreSQL 16
 - **ORM**: SQLAlchemy + Alembic (migrations)
 - **Containerization**: Docker + Docker Compose
-- **Frontend**: React + Tailwind CSS *(in progress)*
+- **Frontend**: React + Vite
 
 ## Project Structure
 
@@ -53,9 +54,6 @@ GID=1000
 ```
 5. Visit `http://localhost:8000/docs` for the interactive API documentation.
 
-## Status
-
-Active development — backend in progress, frontend not yet started.
 
 ## License
 

@@ -4,7 +4,7 @@ const BASE = '/shopping-lists';
 
 export async function getShoppingLists() {
   const response = await apiClient.get(`${BASE}/`);
-  return response.data;
+  return response.data.items;
 }
 
 export async function createShoppingList(name) {

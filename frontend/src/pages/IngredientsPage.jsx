@@ -3,23 +3,26 @@ import { getIngredients, createIngredient, deleteIngredient } from '../api/ingre
 
 function IngredientsPage() {
   const [ingredients, setIngredients] = useState([]);
+  const [nextCursor, setNextCursor] = useState(null);
+  const [hasNext, setHasNext] = useState(false);
   const [name, setName] = useState('');
   const [category, setCategory] = useState('');
   const [error, setError] = useState('');
 
-  // Runs once, right after the component first appears on screen
-  useEffect(() => {
-    loadIngredients();
-  }, []);
-
-  async function loadIngredients() {
+  async function loadIngredients(cursor) {
     try {
-      const data = await getIngredients();
-      setIngredients(data);
+      const data = await getIngredients(cursor);
+      setIngredients((prev) => (cursor ? [...prev, ...data.items] : data.items));
+      setNextCursor(data.next_cursor);
+      setHasNext(data.has_next);
     } catch (err) {
       setError('Errore nel caricamento degli ingredienti.');
     }
   }
+
+  useEffect(() => {
+    loadIngredients();
+  }, []);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -41,7 +44,10 @@ function IngredientsPage() {
 
   async function handleDelete(id) {
     await deleteIngredient(id);
-    loadIngredients(); // refresh the list after deleting
+    // Remove locally instead of refetching: a delete never changes the
+    // sort order of the remaining items, so this stays correct without
+    // touching nextCursor/hasNext or losing pages already loaded.
+    setIngredients((prev) => prev.filter((ingredient) => ingredient.id !== id));
   }
 
   return (
@@ -75,6 +81,9 @@ function IngredientsPage() {
             <button onClick={() => handleDelete(ingredient.id)}>Elimina</button>
           </li>
         ))}
+        {hasNext && (
+          <button onClick={() => loadIngredients(nextCursor)}>Carica altri</button>
+        )}
       </ul>
     </div>
   );

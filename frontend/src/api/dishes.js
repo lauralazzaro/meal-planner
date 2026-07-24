@@ -3,7 +3,7 @@ const BASE = '/dishes';
 
 export async function getDishes() {
   const response = await apiClient.get(`${BASE}`);
-  return response.data;
+  return response.data.items;
 }
 
 export async function createDish(label, comment, mainIngredientId) {

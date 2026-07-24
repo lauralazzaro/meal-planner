@@ -1,9 +1,11 @@
 import apiClient from './client';
 const BASE = '/ingredients'
 
-export async function getIngredients() {
-  const response = await apiClient.get(`${BASE}/`);
-  return response.data;
+export async function getIngredients(cursor) {
+  const response = await apiClient.get(`${BASE}/`, {
+    params: cursor ? { after: cursor } : {},
+  });
+  return response.data; // { items, next_cursor, has_next }
 }
 
 export async function createIngredient(name, shoppingCategory) {
