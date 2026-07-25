@@ -31,7 +31,7 @@ function ShoppingListsPage() {
 
   async function loadIngredients() {
     const data = await getIngredients();
-    setIngredients(data);
+    setIngredients(data.items);
   }
 
   async function handleCreateList(event) {

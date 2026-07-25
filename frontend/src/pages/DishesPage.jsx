@@ -26,7 +26,7 @@ function DishesPage() {
 
   async function loadIngredients() {
     const data = await getIngredients();
-    setIngredients(data);
+    setIngredients(data.items);
   }
 
   async function handleSubmit(event) {
