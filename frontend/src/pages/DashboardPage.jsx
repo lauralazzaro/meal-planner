@@ -1,32 +1,108 @@
-import { useAuth } from '../context/AuthContext';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { getWeeklyPlans } from '../api/weeklyPlans';
+import { getDishLabel } from '../utils/dish';
+
+const DAY_NAMES_BY_JS_INDEX = [
+  'domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato',
+];
+const MEALS = [
+  { type: 'colazione', label: 'Colazione' },
+  { type: 'pranzo', label: 'Pranzo' },
+  { type: 'cena', label: 'Cena' },
+];
+
+function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Buongiorno';
+  if (hour < 18) return 'Buon pomeriggio';
+  return 'Buonasera';
+}
 
 function DashboardPage() {
-  const { logout } = useAuth();
+  const [plans, setPlans] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const navigationLinks = [
-    { to: '/ingredients', label: 'Ingredienti' },
-    { to: '/dishes', label: 'Piatti' },
-    { to: '/shopping-lists', label: 'Liste della spesa' },
-    { to: '/weekly-plans', label: 'Piani settimanali' }
-  ];
+  useEffect(() => {
+    loadPlans();
+  }, []);
+
+  async function loadPlans() {
+    try {
+      const data = await getWeeklyPlans();
+      setPlans(data);
+    } catch (err) {
+      setError('Errore nel caricamento del piano settimanale.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const today = DAY_NAMES_BY_JS_INDEX[new Date().getDay()];
+  const activePlan = plans.find((p) => p.is_default) || plans[0];
+  const todaysEntries = activePlan
+    ? activePlan.dishes.filter((entry) => entry.day_of_week === today)
+    : [];
 
   return (
-    <div>
-      <h1>Dashboard</h1>
-      <p>Bentornata!</p>
+    <div className="dashboard">
+      <section className="dashboard-hero">
+        <div>
+          <h2>{getGreeting()}!</h2>
+          <p>
+            {activePlan
+              ? `Hai ${todaysEntries.length} ${todaysEntries.length === 1 ? 'pasto pianificato' : 'pasti pianificati'} per oggi (${today}).`
+              : 'Non hai ancora un piano settimanale impostato.'}
+          </p>
+        </div>
+        <div className="dashboard-hero-actions">
+          <Link to="/weekly-plans" className="primary">
+            <span className="material-symbols-outlined">calendar_month</span>
+            Piano settimanale
+          </Link>
+          <Link to="/shopping-lists" className="secondary">
+            <span className="material-symbols-outlined">shopping_cart</span>
+            Lista della spesa
+          </Link>
+        </div>
+      </section>
 
-      <nav>
-        <ul>
-          {navigationLinks.map((link) => (
-            <li key={link.to}>
-              <Link to={link.to}>{link.label}</Link>
-            </li>
-          ))}
-        </ul>
-      </nav>
+      <h3 className="dashboard-section-title">I pasti di oggi</h3>
 
-      <button onClick={logout}>Logout</button>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+
+      {!loading && !activePlan && (
+        <div className="dashboard-empty-plan">
+          <p>
+            Non hai ancora nessun piano settimanale. <Link to="/weekly-plans">Creane uno</Link> per vedere qui i pasti di oggi.
+          </p>
+        </div>
+      )}
+
+      {!loading && activePlan && (
+        <div className="meal-grid">
+          {MEALS.map(({ type, label }) => {
+            const entry = todaysEntries.find((e) => e.meal_type === type);
+            return (
+              <div key={type} className={`meal-card${entry ? '' : ' empty'}`}>
+                <span className={`meal-card-badge ${type}`}>{label}</span>
+                {entry ? (
+                  <>
+                    <h4>{getDishLabel(entry.dish)}</h4>
+                    {entry.dish.comment && <p>{entry.dish.comment}</p>}
+                  </>
+                ) : (
+                  <>
+                    <p>Nessun piatto pianificato.</p>
+                    <Link to="/weekly-plans">Pianifica</Link>
+                  </>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

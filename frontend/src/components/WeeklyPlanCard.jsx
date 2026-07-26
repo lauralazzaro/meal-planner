@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { addDishesToPlan } from '../api/weeklyPlans';
+import { getDishLabel } from '../utils/dish';
 
 const DAYS = ['lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato', 'domenica'];
 const MEALS = ['colazione', 'pranzo', 'cena'];
@@ -10,10 +11,6 @@ function WeeklyPlanCard({ plan, dishes, onDeletePlan, onDeleteEntry, onEntriesAd
   const [meal, setMeal] = useState(MEALS[0]);
   const [dishId, setDishId] = useState('');
   const [error, setError] = useState('');
-
-  function displayDishLabel(dish) {
-    return dish.label || dish.main_ingredient?.name || `Piatto #${dish.id}`;
-  }
 
   function handleAddToPending(event) {
     event.preventDefault();
@@ -41,7 +38,7 @@ function WeeklyPlanCard({ plan, dishes, onDeletePlan, onDeleteEntry, onEntriesAd
 
   function dishLabelById(id) {
     const dish = dishes.find((d) => d.id === id);
-    return dish ? displayDishLabel(dish) : '?';
+    return dish ? getDishLabel(dish) : '?';
   }
 
   return (
@@ -55,7 +52,7 @@ function WeeklyPlanCard({ plan, dishes, onDeletePlan, onDeleteEntry, onEntriesAd
       <ul>
         {plan.dishes.map((entry) => (
           <li key={entry.id}>
-            {entry.day_of_week} — {entry.meal_type} — {displayDishLabel(entry.dish)}
+            {entry.day_of_week} — {entry.meal_type} — {getDishLabel(entry.dish)}
             <button onClick={() => onDeleteEntry(entry.id)}>Rimuovi</button>
           </li>
         ))}
@@ -73,7 +70,7 @@ function WeeklyPlanCard({ plan, dishes, onDeletePlan, onDeleteEntry, onEntriesAd
           <option value="">Scegli piatto</option>
           {dishes.map((d) => (
             <option key={d.id} value={d.id}>
-              {displayDishLabel(d)}
+              {getDishLabel(d)}
             </option>
           ))}
         </select>

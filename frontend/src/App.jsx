@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import Navbar from './components/Navbar';
+import Sidebar from './components/Sidebar';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
@@ -15,10 +15,12 @@ function ProtectedRoute({ children }) {
 }
 
 function AppRoutes() {
+  const { isAuthenticated } = useAuth();
+
   return (
-    <>
-      <Navbar />
-      <main className="container">
+    <div className={isAuthenticated ? 'app-shell' : ''}>
+      <Sidebar />
+      <main className={isAuthenticated ? 'app-content container' : 'container'}>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
@@ -29,7 +31,7 @@ function AppRoutes() {
           <Route path="/shopping-lists" element={<ProtectedRoute><ShoppingListsPage /></ProtectedRoute>} />
         </Routes>
       </main>
-    </>
+    </div>
   );
 }
 
