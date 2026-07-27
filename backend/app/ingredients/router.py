@@ -1,3 +1,5 @@
+import uuid
+
 from app.core.pagination import Page, PaginationParams, pagination_params
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -34,7 +36,7 @@ def read_all_ingredients(
     name=RouteName.INGREDIENT_DETAIL,
 )
 def read_ingredient(
-    ingredient_id: int,
+    ingredient_id: uuid.UUID,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -68,7 +70,7 @@ def create_ingredient(
     name=RouteName.INGREDIENT_UPDATE,
 )
 def update_ingredient(
-    ingredient_id: int,
+    ingredient_id: uuid.UUID,
     ingredient_update: schemas.IngredientUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -84,7 +86,7 @@ def update_ingredient(
 
 @router.delete("/{ingredient_id}", name=RouteName.INGREDIENT_DELETE)
 def delete_ingredient(
-    ingredient_id: int,
+    ingredient_id: uuid.UUID,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
