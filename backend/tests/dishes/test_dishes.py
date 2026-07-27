@@ -4,18 +4,22 @@ validation, and multi-tenant isolation."""
 from tests.conftest import create_test_dish
 from app.core.route_names import RouteName
 from app.main import app
+import uuid
 
 
 class TestCreateDish:
     def test_create_dish(self, client, auth_headers, sample_ingredient):
-        data = create_test_dish(client, auth_headers, sample_ingredient["id"])
+        data = create_test_dish(client, auth_headers, sample_ingredient["public_id"])
         assert data["label"] == "Pasta al pomodoro"
         assert data["main_ingredient"]["name"] == "Pomodoro"
 
     def test_create_dish_without_auth_returns_401(self, client, sample_ingredient):
         response = client.post(
             app.url_path_for(RouteName.DISH_CREATE),
-            json={"label": "Test", "main_ingredient_id": sample_ingredient["id"]},
+            json={
+                "label": "Test",
+                "main_ingredient_public_id": sample_ingredient["public_id"],
+            },
         )
         assert response.status_code == 401
 
@@ -24,7 +28,10 @@ class TestCreateDish:
     ):
         response = client.post(
             app.url_path_for(RouteName.DISH_CREATE),
-            json={"label": "Piatto impossibile", "main_ingredient_id": 9999},
+            json={
+                "label": "Piatto impossibile",
+                "main_ingredient_public_id": str(uuid.uuid4()),
+            },
             headers=auth_headers,
         )
         assert response.status_code == 404
@@ -37,7 +44,7 @@ class TestCreateDish:
             app.url_path_for(RouteName.DISH_CREATE),
             json={
                 "label": "Piatto rubato",
-                "main_ingredient_id": sample_ingredient["id"],
+                "main_ingredient_public_id": sample_ingredient["public_id"],
             },
             headers=other_user_headers,
         )
@@ -57,7 +64,7 @@ class TestCreateDish:
 class TestReadDish:
     def test_get_dish_by_id(self, client, auth_headers, sample_dish):
         response = client.get(
-            app.url_path_for(RouteName.DISH_DETAIL, dish_id=sample_dish["id"]),
+            app.url_path_for(RouteName.DISH_DETAIL, dish_id=sample_dish["public_id"]),
             headers=auth_headers,
         )
         assert response.status_code == 200
@@ -65,7 +72,7 @@ class TestReadDish:
 
     def test_get_nonexistent_dish_returns_404(self, client, auth_headers):
         response = client.get(
-            app.url_path_for(RouteName.DISH_DETAIL, dish_id=99999),
+            app.url_path_for(RouteName.DISH_DETAIL, dish_id=str(uuid.uuid4())),
             headers=auth_headers,
         )
         assert response.status_code == 404
@@ -81,7 +88,7 @@ class TestReadDish:
         self, client, other_user_headers, sample_dish
     ):
         response = client.get(
-            app.url_path_for(RouteName.DISH_DETAIL, dish_id=sample_dish["id"]),
+            app.url_path_for(RouteName.DISH_DETAIL, dish_id=sample_dish["public_id"]),
             headers=other_user_headers,
         )
         assert response.status_code == 404
@@ -93,9 +100,13 @@ class TestReadDish:
         assert response.json()["items"] == []
 
     def test_paginated_dishes(self, client, auth_headers, sample_ingredient):
-        create_test_dish(client, auth_headers, sample_ingredient["id"], "Risotto")
-        create_test_dish(client, auth_headers, sample_ingredient["id"], "Lasagna")
-        create_test_dish(client, auth_headers, sample_ingredient["id"], "Pizza")
+        create_test_dish(
+            client, auth_headers, sample_ingredient["public_id"], "Risotto"
+        )
+        create_test_dish(
+            client, auth_headers, sample_ingredient["public_id"], "Lasagna"
+        )
+        create_test_dish(client, auth_headers, sample_ingredient["public_id"], "Pizza")
 
         response = client.get(
             app.url_path_for(RouteName.DISH_LIST),
@@ -109,7 +120,7 @@ class TestReadDish:
 class TestUpdateDish:
     def test_update_dish_label(self, client, auth_headers, sample_dish):
         response = client.patch(
-            app.url_path_for(RouteName.DISH_UPDATE, dish_id=sample_dish["id"]),
+            app.url_path_for(RouteName.DISH_UPDATE, dish_id=sample_dish["public_id"]),
             json={"label": "Nuovo nome"},
             headers=auth_headers,
         )
@@ -118,7 +129,7 @@ class TestUpdateDish:
 
     def test_update_nonexistent_dish_returns_404(self, client, auth_headers):
         response = client.patch(
-            app.url_path_for(RouteName.DISH_UPDATE, dish_id=99999),
+            app.url_path_for(RouteName.DISH_UPDATE, dish_id=str(uuid.uuid4())),
             json={"label": "Test"},
             headers=auth_headers,
         )
@@ -128,7 +139,7 @@ class TestUpdateDish:
         self, client, other_user_headers, sample_dish
     ):
         response = client.patch(
-            app.url_path_for(RouteName.DISH_UPDATE, dish_id=sample_dish["id"]),
+            app.url_path_for(RouteName.DISH_UPDATE, dish_id=sample_dish["public_id"]),
             json={"label": "Hacked"},
             headers=other_user_headers,
         )
@@ -138,24 +149,26 @@ class TestUpdateDish:
 class TestDeleteDish:
     def test_delete_dish(self, client, auth_headers, sample_dish):
         response = client.delete(
-            app.url_path_for(RouteName.DISH_DELETE, dish_id=sample_dish["id"]),
+            app.url_path_for(RouteName.DISH_DELETE, dish_id=sample_dish["public_id"]),
             headers=auth_headers,
         )
         assert response.status_code == 200
 
     def test_deleted_dish_not_in_list(self, client, auth_headers, sample_dish):
         client.delete(
-            app.url_path_for(RouteName.DISH_DELETE, dish_id=sample_dish["id"]),
+            app.url_path_for(RouteName.DISH_DELETE, dish_id=sample_dish["public_id"]),
             headers=auth_headers,
         )
         response = client.get(
             app.url_path_for(RouteName.DISH_LIST), headers=auth_headers
         )
-        assert sample_dish["id"] not in [d["id"] for d in response.json()["items"]]
+        assert sample_dish["public_id"] not in [
+            d["public_id"] for d in response.json()["items"]
+        ]
 
     def test_delete_nonexistent_dish_returns_404(self, client, auth_headers):
         response = client.delete(
-            app.url_path_for(RouteName.DISH_DELETE, dish_id=99999),
+            app.url_path_for(RouteName.DISH_DELETE, dish_id=str(uuid.uuid4())),
             headers=auth_headers,
         )
         assert response.status_code == 404
@@ -164,7 +177,7 @@ class TestDeleteDish:
         self, client, other_user_headers, sample_dish
     ):
         response = client.delete(
-            app.url_path_for(RouteName.DISH_DELETE, dish_id=sample_dish["id"]),
+            app.url_path_for(RouteName.DISH_DELETE, dish_id=sample_dish["public_id"]),
             headers=other_user_headers,
         )
         assert response.status_code == 404
