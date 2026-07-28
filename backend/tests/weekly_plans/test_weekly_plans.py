@@ -4,6 +4,7 @@ bulk dish creation, business rules, and multi-tenant isolation."""
 from tests.conftest import create_test_weekly_plan, create_test_dish
 from app.main import app
 from app.core.route_names import RouteName
+import uuid
 
 
 class TestCreateWeeklyPlan:
@@ -30,11 +31,11 @@ class TestDefaultUniqueness:
         )
 
         response_first = client.get(
-            app.url_path_for(RouteName.WEEKLY_PLAN_DETAIL, plan_id=first["id"]),
+            app.url_path_for(RouteName.WEEKLY_PLAN_DETAIL, plan_id=first["public_id"]),
             headers=auth_headers,
         )
         response_second = client.get(
-            app.url_path_for(RouteName.WEEKLY_PLAN_DETAIL, plan_id=second["id"]),
+            app.url_path_for(RouteName.WEEKLY_PLAN_DETAIL, plan_id=second["public_id"]),
             headers=auth_headers,
         )
 
@@ -53,11 +54,11 @@ class TestDefaultUniqueness:
         )
 
         response_a = client.get(
-            app.url_path_for(RouteName.WEEKLY_PLAN_DETAIL, plan_id=plan_a["id"]),
+            app.url_path_for(RouteName.WEEKLY_PLAN_DETAIL, plan_id=plan_a["public_id"]),
             headers=auth_headers,
         )
         response_b = client.get(
-            app.url_path_for(RouteName.WEEKLY_PLAN_DETAIL, plan_id=plan_b["id"]),
+            app.url_path_for(RouteName.WEEKLY_PLAN_DETAIL, plan_id=plan_b["public_id"]),
             headers=other_user_headers,
         )
 
@@ -69,16 +70,17 @@ class TestReadWeeklyPlan:
     def test_get_weekly_plan_by_id(self, client, auth_headers, sample_weekly_plan):
         response = client.get(
             app.url_path_for(
-                RouteName.WEEKLY_PLAN_DETAIL, plan_id=sample_weekly_plan["id"]
+                RouteName.WEEKLY_PLAN_DETAIL, plan_id=sample_weekly_plan["public_id"]
             ),
             headers=auth_headers,
         )
+
         assert response.status_code == 200
         assert response.json()["name"] == "Settimana test"
 
     def test_get_nonexistent_weekly_plan_returns_404(self, client, auth_headers):
         response = client.get(
-            app.url_path_for(RouteName.WEEKLY_PLAN_DETAIL, plan_id=99999),
+            app.url_path_for(RouteName.WEEKLY_PLAN_DETAIL, plan_id=str(uuid.uuid4())),
             headers=auth_headers,
         )
         assert response.status_code == 404
@@ -88,7 +90,7 @@ class TestReadWeeklyPlan:
     ):
         response = client.get(
             app.url_path_for(
-                RouteName.WEEKLY_PLAN_DETAIL, plan_id=sample_weekly_plan["id"]
+                RouteName.WEEKLY_PLAN_DETAIL, plan_id=sample_weekly_plan["public_id"]
             ),
             headers=other_user_headers,
         )
@@ -99,48 +101,57 @@ class TestBulkAddDishes:
     def test_bulk_add_dishes(
         self, client, auth_headers, sample_weekly_plan, sample_ingredient
     ):
-        dish = create_test_dish(client, auth_headers, sample_ingredient["id"])
+        dish = create_test_dish(
+            client, auth_headers, sample_ingredient["public_id"], "Risotto"
+        )
 
         response = client.post(
             app.url_path_for(
-                RouteName.WEEKLY_PLAN_ADD_DISHES, plan_id=sample_weekly_plan["id"]
+                RouteName.WEEKLY_PLAN_ADD_DISHES,
+                plan_id=sample_weekly_plan["public_id"],
             ),
             json={
                 "dishes": [
                     {
                         "day_of_week": "lunedì",
                         "meal_type": "pranzo",
-                        "dish_id": dish["id"],
+                        "dish_public_id": dish["public_id"],
                     },
                     {
                         "day_of_week": "martedì",
                         "meal_type": "cena",
-                        "dish_id": dish["id"],
+                        "dish_public_id": dish["public_id"],
                     },
                 ]
             },
             headers=auth_headers,
         )
+
         assert response.status_code == 200
         assert len(response.json()) == 2
 
     def test_bulk_add_with_invalid_dish_id_saves_nothing(
         self, client, auth_headers, sample_weekly_plan, sample_ingredient
     ):
-        dish = create_test_dish(client, auth_headers, sample_ingredient["id"])
+        dish = create_test_dish(client, auth_headers, sample_ingredient["public_id"])
 
         response = client.post(
             app.url_path_for(
-                RouteName.WEEKLY_PLAN_ADD_DISHES, plan_id=sample_weekly_plan["id"]
+                RouteName.WEEKLY_PLAN_ADD_DISHES,
+                plan_id=sample_weekly_plan["public_id"],
             ),
             json={
                 "dishes": [
                     {
                         "day_of_week": "lunedì",
                         "meal_type": "pranzo",
-                        "dish_id": dish["id"],
+                        "dish_public_id": dish["public_id"],
                     },
-                    {"day_of_week": "martedì", "meal_type": "cena", "dish_id": 9999},
+                    {
+                        "day_of_week": "martedì",
+                        "meal_type": "cena",
+                        "dish_public_id": str(uuid.uuid4()),
+                    },
                 ]
             },
             headers=auth_headers,
@@ -149,7 +160,7 @@ class TestBulkAddDishes:
 
         plan_response = client.get(
             app.url_path_for(
-                RouteName.WEEKLY_PLAN_DETAIL, plan_id=sample_weekly_plan["id"]
+                RouteName.WEEKLY_PLAN_DETAIL, plan_id=sample_weekly_plan["public_id"]
             ),
             headers=auth_headers,
         )
@@ -158,18 +169,19 @@ class TestBulkAddDishes:
     def test_bulk_add_with_invalid_day_of_week_returns_422(
         self, client, auth_headers, sample_weekly_plan, sample_ingredient
     ):
-        dish = create_test_dish(client, auth_headers, sample_ingredient["id"])
+        dish = create_test_dish(client, auth_headers, sample_ingredient["public_id"])
 
         response = client.post(
             app.url_path_for(
-                RouteName.WEEKLY_PLAN_ADD_DISHES, plan_id=sample_weekly_plan["id"]
+                RouteName.WEEKLY_PLAN_ADD_DISHES,
+                plan_id=sample_weekly_plan["public_id"],
             ),
             json={
                 "dishes": [
                     {
                         "day_of_week": "luned",
                         "meal_type": "pranzo",
-                        "dish_id": dish["id"],
+                        "dish_public_id": dish["public_id"],
                     }
                 ]
             },
@@ -186,21 +198,21 @@ class TestBulkAddDishes:
         sample_ingredient,
     ):
         """A user should not be able to add another user's dish to their own plan."""
-        dish = create_test_dish(client, auth_headers, sample_ingredient["id"])
+        dish = create_test_dish(client, auth_headers, sample_ingredient["public_id"])
 
         other_plan = create_test_weekly_plan(
             client, other_user_headers, name="Piano altro utente"
         )
         response = client.post(
             app.url_path_for(
-                RouteName.WEEKLY_PLAN_ADD_DISHES, plan_id=other_plan["id"]
+                RouteName.WEEKLY_PLAN_ADD_DISHES, plan_id=other_plan["public_id"]
             ),
             json={
                 "dishes": [
                     {
                         "day_of_week": "lunedì",
                         "meal_type": "pranzo",
-                        "dish_id": dish["id"],
+                        "dish_public_id": dish["public_id"],
                     }
                 ]
             },
@@ -213,17 +225,18 @@ class TestDeleteWeeklyPlan:
     def test_delete_weekly_plan_cascades_to_dishes(
         self, client, auth_headers, sample_weekly_plan, sample_ingredient
     ):
-        dish = create_test_dish(client, auth_headers, sample_ingredient["id"])
+        dish = create_test_dish(client, auth_headers, sample_ingredient["public_id"])
         client.post(
             app.url_path_for(
-                RouteName.WEEKLY_PLAN_ADD_DISHES, plan_id=sample_weekly_plan["id"]
+                RouteName.WEEKLY_PLAN_ADD_DISHES,
+                plan_id=sample_weekly_plan["public_id"],
             ),
             json={
                 "dishes": [
                     {
                         "day_of_week": "lunedì",
                         "meal_type": "pranzo",
-                        "dish_id": dish["id"],
+                        "dish_public_id": dish["public_id"],
                     }
                 ]
             },
@@ -232,7 +245,7 @@ class TestDeleteWeeklyPlan:
 
         response = client.delete(
             app.url_path_for(
-                RouteName.WEEKLY_PLAN_DELETE, plan_id=sample_weekly_plan["id"]
+                RouteName.WEEKLY_PLAN_DELETE, plan_id=sample_weekly_plan["public_id"]
             ),
             headers=auth_headers,
         )
@@ -240,7 +253,7 @@ class TestDeleteWeeklyPlan:
 
         get_response = client.get(
             app.url_path_for(
-                RouteName.WEEKLY_PLAN_DETAIL, plan_id=sample_weekly_plan["id"]
+                RouteName.WEEKLY_PLAN_DETAIL, plan_id=sample_weekly_plan["public_id"]
             ),
             headers=auth_headers,
         )
@@ -248,7 +261,7 @@ class TestDeleteWeeklyPlan:
 
     def test_delete_nonexistent_weekly_plan_returns_404(self, client, auth_headers):
         response = client.delete(
-            app.url_path_for(RouteName.WEEKLY_PLAN_DELETE, plan_id=99999),
+            app.url_path_for(RouteName.WEEKLY_PLAN_DELETE, plan_id=str(uuid.uuid4())),
             headers=auth_headers,
         )
         assert response.status_code == 404
@@ -258,7 +271,7 @@ class TestDeleteWeeklyPlan:
     ):
         response = client.delete(
             app.url_path_for(
-                RouteName.WEEKLY_PLAN_DELETE, plan_id=sample_weekly_plan["id"]
+                RouteName.WEEKLY_PLAN_DELETE, plan_id=sample_weekly_plan["public_id"]
             ),
             headers=other_user_headers,
         )

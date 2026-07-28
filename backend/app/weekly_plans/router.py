@@ -6,6 +6,7 @@ from app.auth.models import User
 from app.core.dependencies import get_current_user
 from app.core.route_names import RouteName
 from app.core.pagination import Page, PaginationParams, pagination_params
+import uuid
 
 router = APIRouter(prefix="/weekly-plans", tags=["weekly-plans"])
 
@@ -30,7 +31,7 @@ def read_all_weekly_plans(
     name=RouteName.WEEKLY_PLAN_DETAIL,
 )
 def read_one_plan_by_id(
-    plan_id: int,
+    plan_id: uuid.UUID,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -61,7 +62,7 @@ def add_weekly_plan(
     name=RouteName.WEEKLY_PLAN_UPDATE,
 )
 def update_plan(
-    plan_id: int,
+    plan_id: uuid.UUID,
     plan_update: schemas.WeeklyPlanUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -78,7 +79,7 @@ def update_plan(
 
 @router.delete("/{plan_id}", name=RouteName.WEEKLY_PLAN_DELETE)
 def delete_weekly_plan(
-    plan_id: int,
+    plan_id: uuid.UUID,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -98,7 +99,7 @@ def delete_weekly_plan(
     name=RouteName.WEEKLY_PLAN_ADD_DISHES,
 )
 def add_dishes_to_plan(
-    plan_id: int,
+    plan_id: uuid.UUID,
     payload: schemas.WeeklyPlanDishBulkCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -117,7 +118,7 @@ def add_dishes_to_plan(
     "/{plan_id}/dishes/{weekly_plan_dish_id}", name=RouteName.WEEKLY_PLAN_DELETE_DISH
 )
 def delete_dish_from_plan(
-    plan_id: int,
+    plan_id: uuid.UUID,
     weekly_plan_dish_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
