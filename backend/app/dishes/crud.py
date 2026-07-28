@@ -8,9 +8,9 @@ from app.core.crud_helpers import (
 )
 
 
-def get_one_dish(dish_id: int, user_id: int, db: Session):
-    """Return a single non-deleted dish by id, owned by the given user."""
-    return get_owned_record(models.Dish, dish_id, user_id, db)
+def get_one_dish(dish_id, user_id: int, db: Session):
+    """Return a single non-deleted dish by public_id, owned by the given user."""
+    return get_owned_record(models.Dish, dish_id, user_id, db, lookup_field="public_id")
 
 
 def get_all_dishes(user_id: int, db: Session):
@@ -29,7 +29,7 @@ def create_dish(dish: schemas.DishCreate, user_id: int, db: Session):
     ingredient = (
         db.query(Ingredient)
         .filter(
-            Ingredient.id == dish.main_ingredient_id,
+            Ingredient.public_id == dish.main_ingredient_public_id,
             Ingredient.user_id == user_id,
             Ingredient.is_deleted == False,
         )
@@ -38,7 +38,13 @@ def create_dish(dish: schemas.DishCreate, user_id: int, db: Session):
     if not ingredient:
         return None
 
-    new_dish = models.Dish(**dish.model_dump(), user_id=user_id)
+    new_dish = models.Dish(
+        label=dish.label,
+        comment=dish.comment,
+        main_ingredient_id=ingredient.id,
+        user_id=user_id,
+    )
+
     db.add(new_dish)
     db.commit()
     db.refresh(new_dish)
@@ -46,14 +52,32 @@ def create_dish(dish: schemas.DishCreate, user_id: int, db: Session):
 
 
 def update_dish(
-    dish_id: int, user_id: int, dish_update: schemas.DishUpdate, db: Session
+    dish_public_id, user_id: int, dish_update: schemas.DishUpdate, db: Session
 ):
     """Update one or more fields of an existing dish owned by the user."""
-    dish = get_one_dish(dish_id, user_id, db)
+    dish = get_one_dish(dish_public_id, user_id, db)
     if not dish:
         return None
 
     update_data = dish_update.model_dump(exclude_unset=True)
+
+    # main_ingredient_public_id needs resolving to the internal id before
+    # it can be assigned to the model's main_ingredient_id column.
+    if "main_ingredient_public_id" in update_data:
+        new_public_id = update_data.pop("main_ingredient_public_id")
+        ingredient = (
+            db.query(Ingredient)
+            .filter(
+                Ingredient.public_id == new_public_id,
+                Ingredient.user_id == user_id,
+                Ingredient.is_deleted == False,
+            )
+            .first()
+        )
+        if not ingredient:
+            return None
+        dish.main_ingredient_id = ingredient.id
+
     for field, value in update_data.items():
         setattr(dish, field, value)
 
@@ -62,9 +86,9 @@ def update_dish(
     return dish
 
 
-def delete_dish(dish_id: int, user_id: int, db: Session):
+def delete_dish(dish_public_id, user_id: int, db: Session):
     """Soft delete a dish owned by the user."""
-    dish = get_one_dish(dish_id, user_id, db)
+    dish = get_one_dish(dish_public_id, user_id, db)
     if not dish:
         return None
 

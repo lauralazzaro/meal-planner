@@ -99,7 +99,7 @@ def create_test_dish(client, headers, ingredient_id, label="Pasta al pomodoro"):
     """Helper to create a dish linked to an existing ingredient."""
     response = client.post(
         app.url_path_for(RouteName.DISH_CREATE),
-        json={"label": label, "main_ingredient_id": ingredient_id},
+        json={"label": label, "main_ingredient_public_id": ingredient_id},
         headers=headers,
     )
     return response.json()
@@ -108,7 +108,7 @@ def create_test_dish(client, headers, ingredient_id, label="Pasta al pomodoro"):
 @pytest.fixture
 def sample_dish(client, auth_headers, sample_ingredient):
     """Create a sample dish owned by the default test user."""
-    return create_test_dish(client, auth_headers, sample_ingredient["id"])
+    return create_test_dish(client, auth_headers, sample_ingredient["public_id"])
 
 
 # --- WeeklyPlan helpers ---

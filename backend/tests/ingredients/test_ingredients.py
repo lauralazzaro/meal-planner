@@ -1,6 +1,8 @@
 """Tests for the Ingredient module: create, read, update, delete,
 validation, uniqueness constraint, and multi-tenant isolation."""
 
+import uuid
+
 from tests.conftest import create_test_ingredient
 from app.core.route_names import RouteName
 from app.main import app
@@ -10,7 +12,7 @@ class TestCreateIngredient:
     def test_create_ingredient(self, client, auth_headers):
         data = create_test_ingredient(client, auth_headers)
         assert data["name"] == "Pomodoro"
-        assert "id" in data
+        assert "public_id" in data
 
     def test_create_ingredient_without_auth_returns_401(self, client):
         response = client.post(
@@ -61,7 +63,8 @@ class TestReadIngredient:
     def test_get_ingredient_by_id(self, client, auth_headers, sample_ingredient):
         response = client.get(
             app.url_path_for(
-                RouteName.INGREDIENT_DETAIL, ingredient_id=sample_ingredient["id"]
+                RouteName.INGREDIENT_DETAIL,
+                ingredient_id=sample_ingredient["public_id"],
             ),
             headers=auth_headers,
         )
@@ -71,7 +74,9 @@ class TestReadIngredient:
 
     def test_get_nonexistent_ingredient_returns_404(self, client, auth_headers):
         response = client.get(
-            app.url_path_for(RouteName.INGREDIENT_DETAIL, ingredient_id=999999),
+            app.url_path_for(
+                RouteName.INGREDIENT_DETAIL, ingredient_id=str(uuid.uuid4())
+            ),
             headers=auth_headers,
         )
         assert response.status_code == 404
@@ -89,7 +94,8 @@ class TestReadIngredient:
         """A user should not be able to fetch another user's ingredient by id."""
         response = client.get(
             app.url_path_for(
-                RouteName.INGREDIENT_DETAIL, ingredient_id=sample_ingredient["id"]
+                RouteName.INGREDIENT_DETAIL,
+                ingredient_id=sample_ingredient["public_id"],
             ),
             headers=other_user_headers,
         )
@@ -152,7 +158,8 @@ class TestUpdateIngredient:
     def test_update_ingredient_name(self, client, auth_headers, sample_ingredient):
         response = client.patch(
             app.url_path_for(
-                RouteName.INGREDIENT_UPDATE, ingredient_id=sample_ingredient["id"]
+                RouteName.INGREDIENT_UPDATE,
+                ingredient_id=sample_ingredient["public_id"],
             ),
             json={"name": "Pomodoro San Marzano"},
             headers=auth_headers,
@@ -162,7 +169,9 @@ class TestUpdateIngredient:
 
     def test_update_nonexistent_ingredient_returns_404(self, client, auth_headers):
         response = client.patch(
-            app.url_path_for(RouteName.INGREDIENT_UPDATE, ingredient_id=9999999),
+            app.url_path_for(
+                RouteName.INGREDIENT_UPDATE, ingredient_id=str(uuid.uuid4())
+            ),
             json={"name": "Test"},
             headers=auth_headers,
         )
@@ -173,7 +182,8 @@ class TestUpdateIngredient:
     ):
         response = client.patch(
             app.url_path_for(
-                RouteName.INGREDIENT_UPDATE, ingredient_id=sample_ingredient["id"]
+                RouteName.INGREDIENT_UPDATE,
+                ingredient_id=sample_ingredient["public_id"],
             ),
             json={"name": "Hacked"},
             headers=other_user_headers,
@@ -185,7 +195,8 @@ class TestDeleteIngredient:
     def test_delete_ingredient(self, client, auth_headers, sample_ingredient):
         response = client.delete(
             app.url_path_for(
-                RouteName.INGREDIENT_DELETE, ingredient_id=sample_ingredient["id"]
+                RouteName.INGREDIENT_DELETE,
+                ingredient_id=sample_ingredient["public_id"],
             ),
             headers=auth_headers,
         )
@@ -196,20 +207,23 @@ class TestDeleteIngredient:
     ):
         client.delete(
             app.url_path_for(
-                RouteName.INGREDIENT_DELETE, ingredient_id=sample_ingredient["id"]
+                RouteName.INGREDIENT_DELETE,
+                ingredient_id=sample_ingredient["public_id"],
             ),
             headers=auth_headers,
         )
         response = client.get(
             app.url_path_for(RouteName.INGREDIENT_LIST), headers=auth_headers
         )
-        assert sample_ingredient["id"] not in [
+        assert sample_ingredient["public_id"] not in [
             i["id"] for i in response.json()["items"]
         ]
 
     def test_delete_nonexistent_ingredient_returns_404(self, client, auth_headers):
         response = client.delete(
-            app.url_path_for(RouteName.INGREDIENT_DELETE, ingredient_id=9999999),
+            app.url_path_for(
+                RouteName.INGREDIENT_DELETE, ingredient_id=str(uuid.uuid4())
+            ),
             headers=auth_headers,
         )
         assert response.status_code == 404
@@ -219,7 +233,8 @@ class TestDeleteIngredient:
     ):
         response = client.delete(
             app.url_path_for(
-                RouteName.INGREDIENT_DELETE, ingredient_id=sample_ingredient["id"]
+                RouteName.INGREDIENT_DELETE,
+                ingredient_id=sample_ingredient["public_id"],
             ),
             headers=other_user_headers,
         )

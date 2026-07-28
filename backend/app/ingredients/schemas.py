@@ -1,3 +1,5 @@
+import uuid
+
 from pydantic import BaseModel, Field
 
 
@@ -11,9 +13,8 @@ class IngredientCreate(IngredientBase):
 
 
 class IngredientOut(IngredientBase):
-    id: int
-
-    model_config = {"from_attributes": True}
+    id: uuid.UUID = Field(alias="public_id")
+    model_config = {"from_attributes": True, "populate_by_name": True}
 
 
 class IngredientUpdate(BaseModel):

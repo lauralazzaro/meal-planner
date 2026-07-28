@@ -4,11 +4,17 @@ from sqlalchemy import and_
 
 
 def get_owned_record(
-    model, record_id: int, user_id: int, db: Session, check_deleted: bool = True
+    model,
+    record_id,
+    user_id: int,
+    db: Session,
+    check_deleted: bool = True,
+    lookup_field: str = "id",
 ):
-    """Generic helper to fetch a record by id, scoped to the owning user.
+    """Generic helper to fetch a record by id (or another unique field,
+    e.g. public_id), scoped to the owning user.
     Returns None if not found, not owned, or (optionally) soft-deleted."""
-    filters = [model.id == record_id, model.user_id == user_id]
+    filters = [getattr(model, lookup_field) == record_id, model.user_id == user_id]
     if check_deleted and hasattr(model, "is_deleted"):
         filters.append(model.is_deleted == False)
 

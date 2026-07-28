@@ -6,6 +6,7 @@ from app.auth.models import User
 from app.core.dependencies import get_current_user
 from app.core.route_names import RouteName
 from app.core.pagination import Page, PaginationParams, pagination_params
+import uuid
 
 router = APIRouter(prefix="/shopping-lists", tags=["shopping-lists"])
 
@@ -32,7 +33,7 @@ def read_all_shopping_lists(
     name=RouteName.SHOPPING_LIST_DETAIL,
 )
 def read_one_shopping_list(
-    list_id: int,
+    list_id: uuid.UUID,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -63,7 +64,7 @@ def add_shopping_list(
     name=RouteName.SHOPPING_LIST_ADD_ITEM,
 )
 def add_item_to_shopping_list(
-    list_id: int,
+    list_id: uuid.UUID,
     item: schemas.ShoppingListItemCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -84,7 +85,7 @@ def add_item_to_shopping_list(
     name=RouteName.SHOPPING_LIST_UPDATE,
 )
 def update_shopping_list(
-    list_id: int,
+    list_id,
     shopping_list: schemas.ShoppingListUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -101,7 +102,7 @@ def update_shopping_list(
 
 @router.delete("/{list_id}", name=RouteName.SHOPPING_LIST_DELETE)
 def delete_shopping_list(
-    list_id: int,
+    list_id,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -114,7 +115,7 @@ def delete_shopping_list(
 
 @router.delete("/{list_id}/items/{item_id}", name=RouteName.SHOPPING_LIST_DELETE_ITEM)
 def delete_item_from_list(
-    list_id: int,
+    list_id,
     item_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -137,7 +138,7 @@ def delete_item_from_list(
     name=RouteName.SHOPPING_LIST_UPDATE_ITEM,
 )
 def update_item_from_list(
-    list_id: int,
+    list_id: uuid.UUID,
     item_id: int,
     item: schemas.ShoppingListItemUpdate,
     db: Session = Depends(get_db),

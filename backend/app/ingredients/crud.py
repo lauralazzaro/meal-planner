@@ -8,14 +8,11 @@ from app.core.crud_helpers import (
 )
 
 
-def get_ingredient(ingredient_id: int, user_id: int, db: Session):
-    """Return a single non-deleted ingredient by id, owned by the given user."""
-    return get_owned_record(models.Ingredient, ingredient_id, user_id, db)
-
-
-def get_all_ingredients(user_id: int, db: Session):
-    """Return all non-deleted ingredients owned by the given user."""
-    return get_all_owned_records(models.Ingredient, user_id, db)
+def get_ingredient(ingredient_public_id, user_id: int, db: Session):
+    """Return a single non-deleted ingredient by public_id, owned by the given user."""
+    return get_owned_record(
+        models.Ingredient, ingredient_public_id, user_id, db, lookup_field="public_id"
+    )
 
 
 def get_paginated_ingredients(user_id, db, params):
@@ -38,13 +35,13 @@ def create_ingredient(ingredient: schemas.IngredientCreate, user_id: int, db: Se
 
 
 def update_ingredient(
-    ingredient_id: int,
+    ingredient_public_id,
     user_id: int,
     ingredient_update: schemas.IngredientUpdate,
     db: Session,
 ):
     """Update one or more fields of an existing ingredient owned by the user."""
-    ingredient = get_ingredient(ingredient_id, user_id, db)
+    ingredient = get_ingredient(ingredient_public_id, user_id, db)
     if not ingredient:
         return None
 
@@ -57,9 +54,9 @@ def update_ingredient(
     return ingredient
 
 
-def delete_ingredient(ingredient_id: int, user_id: int, db: Session):
+def delete_ingredient(ingredient_public_id, user_id: int, db: Session):
     """Soft delete an ingredient owned by the user."""
-    ingredient = get_ingredient(ingredient_id, user_id, db)
+    ingredient = get_ingredient(ingredient_public_id, user_id, db)
     if not ingredient:
         return None
 
@@ -67,10 +64,3 @@ def delete_ingredient(ingredient_id: int, user_id: int, db: Session):
     db.commit()
     db.refresh(ingredient)
     return ingredient
-
-
-# ingredients/crud.py
-def get_paginated_ingredients(user_id, db, params):
-    return get_owned_paginated_records(
-        models.Ingredient, user_id, db, params, sort_field="name"
-    )

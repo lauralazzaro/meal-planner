@@ -6,6 +6,7 @@ from app.auth.models import User
 from app.core.dependencies import get_current_user
 from app.core.route_names import RouteName
 from app.core.pagination import PaginationParams, pagination_params, Page
+import uuid
 
 router = APIRouter(prefix="/dishes", tags=["dishes"])
 
@@ -27,7 +28,7 @@ def read_all_dishes(
 
 @router.get("/{dish_id}", response_model=schemas.DishOut, name=RouteName.DISH_DETAIL)
 def read_one_dish(
-    dish_id: int,
+    dish_id: uuid.UUID,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -55,7 +56,7 @@ def create_dish(
 
 @router.patch("/{dish_id}", response_model=schemas.DishOut, name=RouteName.DISH_UPDATE)
 def update_dish(
-    dish_id: int,
+    dish_id: uuid.UUID,
     dish_update: schemas.DishUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -71,7 +72,7 @@ def update_dish(
 
 @router.delete("/{dish_id}", name=RouteName.DISH_DELETE)
 def delete_dish(
-    dish_id: int,
+    dish_id: uuid.UUID,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):

@@ -1,12 +1,8 @@
-from sqlalchemy import (
-    Column,
-    Integer,
-    String,
-    ForeignKey,
-    Boolean,
-    Index,
-)
+import uuid
+from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, Index, DateTime
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 from app.database import Base
 from app.dishes.models import Dish
 
@@ -15,9 +11,21 @@ class WeeklyPlan(Base):
     __tablename__ = "weekly_plan"
 
     id = Column(Integer, primary_key=True, index=True)
+    public_id = Column(
+        UUID(as_uuid=True), unique=True, nullable=False, default=uuid.uuid4, index=True
+    )
     name = Column(String, nullable=True)
     is_default = Column(Boolean, nullable=False, default=False)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
 
     dishes = relationship(
         "WeeklyPlanDish", back_populates="weekly_plan", cascade="all, delete-orphan"

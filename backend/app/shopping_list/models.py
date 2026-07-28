@@ -3,15 +3,28 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.database import Base
 from app.ingredients.models import Ingredient  # noqa: F401
+import uuid
+from sqlalchemy.dialects.postgresql import UUID
 
 
 class ShoppingList(Base):
     __tablename__ = "shopping_lists"
 
     id = Column(Integer, primary_key=True, index=True)
+    public_id = Column(
+        UUID(as_uuid=True), unique=True, nullable=False, default=uuid.uuid4, index=True
+    )
     name = Column(String, nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
 
     items = relationship(
         "ShoppingListItem", back_populates="shopping_list", cascade="all, delete-orphan"
@@ -34,3 +47,9 @@ class ShoppingListItem(Base):
     ingredient_id = Column(Integer, ForeignKey("ingredients.id"), nullable=True)
 
     shopping_list = relationship("ShoppingList", back_populates="items")
+    ingredient = relationship("Ingredient")
+
+    @property
+    def ingredient_public_id(self):
+        """Expose the linked ingredient's public_id, if any, for API responses."""
+        return self.ingredient.public_id if self.ingredient else None
