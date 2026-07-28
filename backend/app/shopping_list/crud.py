@@ -6,6 +6,7 @@ from app.core.crud_helpers import (
     get_all_owned_records,
     get_owned_paginated_records,
 )
+import uuid
 
 
 def create_shopping_list(
@@ -13,7 +14,6 @@ def create_shopping_list(
 ):
     """Create a new, empty shopping list."""
     new_list = models.ShoppingList(name=shopping_list.name, user_id=user_id)
-
     db.add(new_list)
     db.commit()
     db.refresh(new_list)
@@ -31,19 +31,26 @@ def get_paginated_shopping_list(user_id, db, params):
     )
 
 
-def get_shopping_list(shopping_list_id: int, user_id: int, db: Session):
-    """Return a single shopping list by id."""
-    return get_owned_record(models.ShoppingList, shopping_list_id, user_id, db)
+def get_shopping_list(shopping_list_public_id: uuid.UUID, user_id: int, db: Session):
+    """Return a single shopping list by public_id."""
+    return get_owned_record(
+        models.ShoppingList,
+        shopping_list_public_id,
+        user_id,
+        db,
+        True,
+        lookup_field="public_id",
+    )
 
 
 def update_shopping_list(
-    shopping_list_id: int,
+    shopping_list_public_id: uuid.UUID,
     payload: schemas.ShoppingListUpdate,
     user_id: int,
     db: Session,
 ):
     """Update fields of an existing shopping list (e.g. its name)."""
-    shopping_list = get_shopping_list(shopping_list_id, user_id, db)
+    shopping_list = get_shopping_list(shopping_list_public_id, user_id, db)
     if not shopping_list:
         return None
 
@@ -56,9 +63,9 @@ def update_shopping_list(
     return shopping_list
 
 
-def delete_shopping_list(shopping_list_id: int, user_id: int, db: Session):
+def delete_shopping_list(shopping_list_public_id: uuid.UUID, user_id: int, db: Session):
     """Permanently delete a shopping list and all its items (cascade)."""
-    shopping_list = get_shopping_list(shopping_list_id, user_id, db)
+    shopping_list = get_shopping_list(shopping_list_public_id, user_id, db)
     if not shopping_list:
         return None
 
@@ -68,7 +75,7 @@ def delete_shopping_list(shopping_list_id: int, user_id: int, db: Session):
 
 
 def create_shopping_list_item(
-    shopping_list_id: int,
+    shopping_list_public_id: uuid.UUID,
     item: schemas.ShoppingListItemCreate,
     user_id: int,
     db: Session,
@@ -77,15 +84,15 @@ def create_shopping_list_item(
     ingredient or as free text. Returns None if the shopping list or
     the referenced ingredient don't exist."""
 
-    shopping_list = get_shopping_list(shopping_list_id, user_id, db)
+    shopping_list = get_shopping_list(shopping_list_public_id, user_id, db)
     if not shopping_list:
         return None
 
-    if item.ingredient_id is not None:
+    if item.ingredient_public_id is not None:
         ingredient = (
             db.query(Ingredient)
             .filter(
-                Ingredient.id == item.ingredient_id,
+                Ingredient.public_id == item.ingredient_public_id,
                 Ingredient.user_id == user_id,
                 Ingredient.is_deleted == False,
             )
@@ -95,7 +102,7 @@ def create_shopping_list_item(
             return None
 
         new_item = models.ShoppingListItem(
-            shopping_list_id=shopping_list_id,
+            shopping_list_id=shopping_list.id,
             ingredient_id=ingredient.id,
             name=ingredient.name,
             shopping_category=ingredient.shopping_category,
@@ -104,7 +111,7 @@ def create_shopping_list_item(
         )
     else:
         new_item = models.ShoppingListItem(
-            shopping_list_id=shopping_list_id,
+            shopping_list_id=shopping_list.id,
             name=item.name,
             shopping_category=item.shopping_category,
             quantity=item.quantity,
@@ -117,15 +124,31 @@ def create_shopping_list_item(
     return new_item
 
 
+def get_owned_shopping_list_item(
+    shopping_list_public_id: uuid.UUID, item_id: int, user_id: int, db: Session
+):
+    """Return a shopping list item, verifying it belongs to a list owned by the user."""
+    return (
+        db.query(models.ShoppingListItem)
+        .join(models.ShoppingList)
+        .filter(
+            models.ShoppingListItem.id == item_id,
+            models.ShoppingList.public_id == shopping_list_public_id,
+            models.ShoppingList.user_id == user_id,
+        )
+        .first()
+    )
+
+
 def update_shopping_list_item(
-    shopping_list_id: int,
+    shopping_list_public_id: uuid.UUID,
     item_id: int,
     payload: schemas.ShoppingListItemUpdate,
     user_id: int,
     db: Session,
 ):
     """Update quantity, unit, or checked status of a shopping list item."""
-    item = get_owned_shopping_list_item(shopping_list_id, item_id, user_id, db)
+    item = get_owned_shopping_list_item(shopping_list_public_id, item_id, user_id, db)
     if not item:
         return None
 
@@ -139,29 +162,13 @@ def update_shopping_list_item(
 
 
 def delete_shopping_list_item(
-    shopping_list_id: int, item_id: int, user_id: int, db: Session
+    shopping_list_public_id: uuid.UUID, item_id: int, user_id: int, db: Session
 ):
     """Permanently remove a single item from a shopping list."""
-    item = get_owned_shopping_list_item(shopping_list_id, item_id, user_id, db)
+    item = get_owned_shopping_list_item(shopping_list_public_id, item_id, user_id, db)
     if not item:
         return None
 
     db.delete(item)
     db.commit()
     return item
-
-
-def get_owned_shopping_list_item(
-    shopping_list_id: int, item_id: int, user_id: int, db: Session
-):
-    """Return a shopping list item, verifying it belongs to a list owned by the user."""
-    return (
-        db.query(models.ShoppingListItem)
-        .join(models.ShoppingList)
-        .filter(
-            models.ShoppingListItem.id == item_id,
-            models.ShoppingListItem.shopping_list_id == shopping_list_id,
-            models.ShoppingList.user_id == user_id,
-        )
-        .first()
-    )
