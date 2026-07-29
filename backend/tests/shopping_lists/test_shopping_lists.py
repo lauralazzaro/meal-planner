@@ -25,7 +25,7 @@ class TestReadShoppingList:
         response = client.get(
             app.url_path_for(
                 RouteName.SHOPPING_LIST_DETAIL,
-                list_id=sample_shopping_list["public_id"],
+                list_id=sample_shopping_list["id"],
             ),
             headers=auth_headers,
         )
@@ -52,7 +52,7 @@ class TestReadShoppingList:
         response = client.get(
             app.url_path_for(
                 RouteName.SHOPPING_LIST_DETAIL,
-                list_id=sample_shopping_list["public_id"],
+                list_id=sample_shopping_list["id"],
             ),
             headers=other_user_headers,
         )
@@ -66,7 +66,7 @@ class TestUpdateShoppingList:
         response = client.patch(
             app.url_path_for(
                 RouteName.SHOPPING_LIST_UPDATE,
-                list_id=sample_shopping_list["public_id"],
+                list_id=sample_shopping_list["id"],
             ),
             json={"name": "Lista rinominata"},
             headers=auth_headers,
@@ -90,10 +90,10 @@ class TestAddItemToShoppingList:
         response = client.post(
             app.url_path_for(
                 RouteName.SHOPPING_LIST_ADD_ITEM,
-                list_id=sample_shopping_list["public_id"],
+                list_id=sample_shopping_list["id"],
             ),
             json={
-                "ingredient_public_id": sample_ingredient["public_id"],
+                "ingredient_public_id": sample_ingredient["id"],
                 "quantity": 2,
                 "unit": "pz",
             },
@@ -104,19 +104,19 @@ class TestAddItemToShoppingList:
 
         assert response.status_code == 200
         assert data["name"] == sample_ingredient["name"]
-        assert data["ingredient_public_id"] == sample_ingredient["public_id"]
+        assert data["ingredient_id"] == sample_ingredient["id"]
 
     def test_add_free_text_item(self, client, auth_headers, sample_shopping_list):
         response = client.post(
             app.url_path_for(
                 RouteName.SHOPPING_LIST_ADD_ITEM,
-                list_id=sample_shopping_list["public_id"],
+                list_id=sample_shopping_list["id"],
             ),
             json={"name": "Detersivo", "shopping_category": "Altro"},
             headers=auth_headers,
         )
         assert response.status_code == 200
-        assert response.json()["ingredient_public_id"] is None
+        assert response.json()["ingredient_id"] is None
 
     def test_add_item_without_ingredient_or_freetext_returns_422(
         self, client, auth_headers, sample_shopping_list
@@ -124,7 +124,7 @@ class TestAddItemToShoppingList:
         response = client.post(
             app.url_path_for(
                 RouteName.SHOPPING_LIST_ADD_ITEM,
-                list_id=sample_shopping_list["public_id"],
+                list_id=sample_shopping_list["id"],
             ),
             json={"quantity": 1},
             headers=auth_headers,
@@ -137,7 +137,7 @@ class TestAddItemToShoppingList:
         response = client.post(
             app.url_path_for(
                 RouteName.SHOPPING_LIST_ADD_ITEM,
-                list_id=sample_shopping_list["public_id"],
+                list_id=sample_shopping_list["id"],
             ),
             json={"ingredient_public_id": str(uuid.uuid4())},
             headers=auth_headers,
@@ -156,9 +156,9 @@ class TestAddItemToShoppingList:
         response = client.post(
             app.url_path_for(
                 RouteName.SHOPPING_LIST_ADD_ITEM,
-                list_id=sample_shopping_list["public_id"],
+                list_id=sample_shopping_list["id"],
             ),
-            json={"ingredient_public_id": sample_ingredient["public_id"]},
+            json={"ingredient_public_id": sample_ingredient["id"]},
             headers=other_user_headers,
         )
         assert response.status_code == 404
@@ -171,10 +171,10 @@ class TestUpdateShoppingListItem:
         item = client.post(
             app.url_path_for(
                 RouteName.SHOPPING_LIST_ADD_ITEM,
-                list_id=sample_shopping_list["public_id"],
+                list_id=sample_shopping_list["id"],
             ),
             json={
-                "ingredient_public_id": sample_ingredient["public_id"],
+                "ingredient_public_id": sample_ingredient["id"],
                 "quantity": 1,
             },
             headers=auth_headers,
@@ -183,7 +183,7 @@ class TestUpdateShoppingListItem:
         response = client.patch(
             app.url_path_for(
                 RouteName.SHOPPING_LIST_UPDATE_ITEM,
-                list_id=sample_shopping_list["public_id"],
+                list_id=sample_shopping_list["id"],
                 item_id=item["id"],
             ),
             json={"quantity": 5, "is_checked": True},
@@ -203,16 +203,16 @@ class TestUpdateShoppingListItem:
         item = client.post(
             app.url_path_for(
                 RouteName.SHOPPING_LIST_ADD_ITEM,
-                list_id=sample_shopping_list["public_id"],
+                list_id=sample_shopping_list["id"],
             ),
-            json={"ingredient_public_id": sample_ingredient["public_id"]},
+            json={"ingredient_public_id": sample_ingredient["id"]},
             headers=auth_headers,
         ).json()
 
         response = client.patch(
             app.url_path_for(
                 RouteName.SHOPPING_LIST_UPDATE_ITEM,
-                list_id=sample_shopping_list["public_id"],
+                list_id=sample_shopping_list["id"],
                 item_id=item["id"],
             ),
             json={"quantity": 5},
@@ -228,16 +228,16 @@ class TestDeleteShoppingListItem:
         item = client.post(
             app.url_path_for(
                 RouteName.SHOPPING_LIST_ADD_ITEM,
-                list_id=sample_shopping_list["public_id"],
+                list_id=sample_shopping_list["id"],
             ),
-            json={"ingredient_public_id": sample_ingredient["public_id"]},
+            json={"ingredient_public_id": sample_ingredient["id"]},
             headers=auth_headers,
         ).json()
 
         response = client.delete(
             app.url_path_for(
                 RouteName.SHOPPING_LIST_DELETE_ITEM,
-                list_id=sample_shopping_list["public_id"],
+                list_id=sample_shopping_list["id"],
                 item_id=item["id"],
             ),
             headers=auth_headers,
@@ -250,7 +250,7 @@ class TestDeleteShoppingListItem:
         response = client.delete(
             app.url_path_for(
                 RouteName.SHOPPING_LIST_DELETE_ITEM,
-                list_id=sample_shopping_list["public_id"],
+                list_id=sample_shopping_list["id"],
                 item_id=99999,
             ),
             headers=auth_headers,
@@ -265,16 +265,16 @@ class TestDeleteShoppingList:
         client.post(
             app.url_path_for(
                 RouteName.SHOPPING_LIST_ADD_ITEM,
-                list_id=sample_shopping_list["public_id"],
+                list_id=sample_shopping_list["id"],
             ),
-            json={"ingredient_public_id": sample_ingredient["public_id"]},
+            json={"ingredient_public_id": sample_ingredient["id"]},
             headers=auth_headers,
         )
 
         response = client.delete(
             app.url_path_for(
                 RouteName.SHOPPING_LIST_DELETE,
-                list_id=sample_shopping_list["public_id"],
+                list_id=sample_shopping_list["id"],
             ),
             headers=auth_headers,
         )
@@ -283,7 +283,7 @@ class TestDeleteShoppingList:
         get_response = client.get(
             app.url_path_for(
                 RouteName.SHOPPING_LIST_DETAIL,
-                list_id=sample_shopping_list["public_id"],
+                list_id=sample_shopping_list["id"],
             ),
             headers=auth_headers,
         )
@@ -302,7 +302,7 @@ class TestDeleteShoppingList:
         response = client.delete(
             app.url_path_for(
                 RouteName.SHOPPING_LIST_DELETE,
-                list_id=sample_shopping_list["public_id"],
+                list_id=sample_shopping_list["id"],
             ),
             headers=other_user_headers,
         )

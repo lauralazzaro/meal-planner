@@ -11,7 +11,12 @@ import uuid
 router = APIRouter(prefix="/dishes", tags=["dishes"])
 
 
-@router.get("/", response_model=Page[schemas.DishOut], name=RouteName.DISH_LIST)
+@router.get(
+    "/",
+    response_model=Page[schemas.DishOut],
+    name=RouteName.DISH_LIST,
+    response_model_by_alias=False,
+)
 def read_all_dishes(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -26,7 +31,12 @@ def read_all_dishes(
     return Page(items=items, next_cursor=next_cursor, has_next=has_next)
 
 
-@router.get("/{dish_id}", response_model=schemas.DishOut, name=RouteName.DISH_DETAIL)
+@router.get(
+    "/{dish_id}",
+    response_model=schemas.DishOut,
+    name=RouteName.DISH_DETAIL,
+    response_model_by_alias=False,
+)
 def read_one_dish(
     dish_id: uuid.UUID,
     db: Session = Depends(get_db),
@@ -40,7 +50,12 @@ def read_one_dish(
     return dish
 
 
-@router.post("/", response_model=schemas.DishOut, name=RouteName.DISH_CREATE)
+@router.post(
+    "/",
+    response_model=schemas.DishOut,
+    name=RouteName.DISH_CREATE,
+    response_model_by_alias=False,
+)
 def create_dish(
     dish: schemas.DishCreate,
     db: Session = Depends(get_db),
@@ -54,7 +69,12 @@ def create_dish(
     return new_dish
 
 
-@router.patch("/{dish_id}", response_model=schemas.DishOut, name=RouteName.DISH_UPDATE)
+@router.patch(
+    "/{dish_id}",
+    response_model=schemas.DishOut,
+    name=RouteName.DISH_UPDATE,
+    response_model_by_alias=False,
+)
 def update_dish(
     dish_id: uuid.UUID,
     dish_update: schemas.DishUpdate,
@@ -70,7 +90,11 @@ def update_dish(
     return dish
 
 
-@router.delete("/{dish_id}", name=RouteName.DISH_DELETE)
+@router.delete(
+    "/{dish_id}",
+    name=RouteName.DISH_DELETE,
+    response_model_by_alias=False,
+)
 def delete_dish(
     dish_id: uuid.UUID,
     db: Session = Depends(get_db),

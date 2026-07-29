@@ -12,7 +12,7 @@ class TestCreateIngredient:
     def test_create_ingredient(self, client, auth_headers):
         data = create_test_ingredient(client, auth_headers)
         assert data["name"] == "Pomodoro"
-        assert "public_id" in data
+        assert "id" in data
 
     def test_create_ingredient_without_auth_returns_401(self, client):
         response = client.post(
@@ -64,7 +64,7 @@ class TestReadIngredient:
         response = client.get(
             app.url_path_for(
                 RouteName.INGREDIENT_DETAIL,
-                ingredient_id=sample_ingredient["public_id"],
+                ingredient_id=sample_ingredient["id"],
             ),
             headers=auth_headers,
         )
@@ -95,7 +95,7 @@ class TestReadIngredient:
         response = client.get(
             app.url_path_for(
                 RouteName.INGREDIENT_DETAIL,
-                ingredient_id=sample_ingredient["public_id"],
+                ingredient_id=sample_ingredient["id"],
             ),
             headers=other_user_headers,
         )
@@ -159,7 +159,7 @@ class TestUpdateIngredient:
         response = client.patch(
             app.url_path_for(
                 RouteName.INGREDIENT_UPDATE,
-                ingredient_id=sample_ingredient["public_id"],
+                ingredient_id=sample_ingredient["id"],
             ),
             json={"name": "Pomodoro San Marzano"},
             headers=auth_headers,
@@ -183,7 +183,7 @@ class TestUpdateIngredient:
         response = client.patch(
             app.url_path_for(
                 RouteName.INGREDIENT_UPDATE,
-                ingredient_id=sample_ingredient["public_id"],
+                ingredient_id=sample_ingredient["id"],
             ),
             json={"name": "Hacked"},
             headers=other_user_headers,
@@ -196,7 +196,7 @@ class TestDeleteIngredient:
         response = client.delete(
             app.url_path_for(
                 RouteName.INGREDIENT_DELETE,
-                ingredient_id=sample_ingredient["public_id"],
+                ingredient_id=sample_ingredient["id"],
             ),
             headers=auth_headers,
         )
@@ -208,14 +208,14 @@ class TestDeleteIngredient:
         client.delete(
             app.url_path_for(
                 RouteName.INGREDIENT_DELETE,
-                ingredient_id=sample_ingredient["public_id"],
+                ingredient_id=sample_ingredient["id"],
             ),
             headers=auth_headers,
         )
         response = client.get(
             app.url_path_for(RouteName.INGREDIENT_LIST), headers=auth_headers
         )
-        assert sample_ingredient["public_id"] not in [
+        assert sample_ingredient["id"] not in [
             i["id"] for i in response.json()["items"]
         ]
 
@@ -234,7 +234,7 @@ class TestDeleteIngredient:
         response = client.delete(
             app.url_path_for(
                 RouteName.INGREDIENT_DELETE,
-                ingredient_id=sample_ingredient["public_id"],
+                ingredient_id=sample_ingredient["id"],
             ),
             headers=other_user_headers,
         )

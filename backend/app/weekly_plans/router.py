@@ -12,7 +12,10 @@ router = APIRouter(prefix="/weekly-plans", tags=["weekly-plans"])
 
 
 @router.get(
-    "/", response_model=Page[schemas.WeeklyPlanOut], name=RouteName.WEEKLY_PLAN_LIST
+    "/",
+    response_model=Page[schemas.WeeklyPlanOut],
+    name=RouteName.WEEKLY_PLAN_LIST,
+    response_model_by_alias=False,
 )
 def read_all_weekly_plans(
     db: Session = Depends(get_db),
@@ -29,6 +32,7 @@ def read_all_weekly_plans(
     "/{plan_id}",
     response_model=schemas.WeeklyPlanOut,
     name=RouteName.WEEKLY_PLAN_DETAIL,
+    response_model_by_alias=False,
 )
 def read_one_plan_by_id(
     plan_id: uuid.UUID,
@@ -46,7 +50,10 @@ def read_one_plan_by_id(
 
 
 @router.post(
-    "/", response_model=schemas.WeeklyPlanOut, name=RouteName.WEEKLY_PLAN_CREATE
+    "/",
+    response_model=schemas.WeeklyPlanOut,
+    name=RouteName.WEEKLY_PLAN_CREATE,
+    response_model_by_alias=False,
 )
 def add_weekly_plan(
     weekly_plan: schemas.WeeklyPlanCreate,
@@ -77,7 +84,11 @@ def update_plan(
     return updated_plan
 
 
-@router.delete("/{plan_id}", name=RouteName.WEEKLY_PLAN_DELETE)
+@router.delete(
+    "/{plan_id}",
+    name=RouteName.WEEKLY_PLAN_DELETE,
+    response_model_by_alias=False,
+)
 def delete_weekly_plan(
     plan_id: uuid.UUID,
     db: Session = Depends(get_db),
@@ -97,6 +108,7 @@ def delete_weekly_plan(
     "/{plan_id}/dishes",
     response_model=list[schemas.WeeklyPlanDishOut],
     name=RouteName.WEEKLY_PLAN_ADD_DISHES,
+    response_model_by_alias=False,
 )
 def add_dishes_to_plan(
     plan_id: uuid.UUID,
@@ -115,7 +127,9 @@ def add_dishes_to_plan(
 
 
 @router.delete(
-    "/{plan_id}/dishes/{weekly_plan_dish_id}", name=RouteName.WEEKLY_PLAN_DELETE_DISH
+    "/{plan_id}/dishes/{weekly_plan_dish_id}",
+    name=RouteName.WEEKLY_PLAN_DELETE_DISH,
+    response_model_by_alias=False,
 )
 def delete_dish_from_plan(
     plan_id: uuid.UUID,

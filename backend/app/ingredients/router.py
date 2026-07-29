@@ -17,6 +17,7 @@ router = APIRouter(prefix="/ingredients", tags=["ingredients"])
     "/",
     response_model=Page[schemas.IngredientOut],
     name=RouteName.INGREDIENT_LIST,
+    response_model_by_alias=False,
 )
 def read_all_ingredients(
     db: Session = Depends(get_db),
@@ -34,6 +35,7 @@ def read_all_ingredients(
     "/{ingredient_id}",
     response_model=schemas.IngredientOut,
     name=RouteName.INGREDIENT_DETAIL,
+    response_model_by_alias=False,
 )
 def read_ingredient(
     ingredient_id: uuid.UUID,
@@ -48,7 +50,10 @@ def read_ingredient(
 
 
 @router.post(
-    "/", response_model=schemas.IngredientOut, name=RouteName.INGREDIENT_CREATE
+    "/",
+    response_model=schemas.IngredientOut,
+    name=RouteName.INGREDIENT_CREATE,
+    response_model_by_alias=False,
 )
 def create_ingredient(
     ingredient: schemas.IngredientCreate,
@@ -68,6 +73,7 @@ def create_ingredient(
     "/{ingredient_id}",
     response_model=schemas.IngredientOut,
     name=RouteName.INGREDIENT_UPDATE,
+    response_model_by_alias=False,
 )
 def update_ingredient(
     ingredient_id: uuid.UUID,
@@ -84,7 +90,11 @@ def update_ingredient(
     return ingredient
 
 
-@router.delete("/{ingredient_id}", name=RouteName.INGREDIENT_DELETE)
+@router.delete(
+    "/{ingredient_id}",
+    name=RouteName.INGREDIENT_DELETE,
+    response_model_by_alias=False,
+)
 def delete_ingredient(
     ingredient_id: uuid.UUID,
     db: Session = Depends(get_db),

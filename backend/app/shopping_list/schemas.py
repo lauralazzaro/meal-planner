@@ -28,8 +28,11 @@ class ShoppingListItemOut(BaseModel):
     unit: str | None = None
     is_checked: bool
     ingredient_id: uuid.UUID | None = Field(None, alias="ingredient_public_id")
-
-    model_config = {"from_attributes": True, "populate_by_name": True}
+    model_config = {
+        "from_attributes": True,
+        "populate_by_name": True,
+        "ser_json_by_alias": True,
+    }
 
     @model_validator(mode="before")
     @classmethod
@@ -66,7 +69,11 @@ class ShoppingListOut(BaseModel):
     created_at: datetime
     items: list[ShoppingListItemOut] = []
 
-    model_config = {"from_attributes": True, "populate_by_name": True}
+    model_config = {
+        "from_attributes": True,
+        "populate_by_name": True,
+        "ser_json_by_alias": True,
+    }
 
 
 class ShoppingListUpdate(BaseModel):

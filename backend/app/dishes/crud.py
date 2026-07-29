@@ -3,7 +3,6 @@ from app.dishes import models, schemas
 from app.ingredients.models import Ingredient
 from app.core.crud_helpers import (
     get_owned_record,
-    get_all_owned_records,
     get_owned_paginated_records,
 )
 
@@ -11,11 +10,6 @@ from app.core.crud_helpers import (
 def get_one_dish(dish_id, user_id: int, db: Session):
     """Return a single non-deleted dish by public_id, owned by the given user."""
     return get_owned_record(models.Dish, dish_id, user_id, db, lookup_field="public_id")
-
-
-def get_all_dishes(user_id: int, db: Session):
-    """Return all non-deleted dishes owned by the given user."""
-    return get_all_owned_records(models.Dish, user_id, db)
 
 
 def get_paginated_dishes(user_id, db, params):

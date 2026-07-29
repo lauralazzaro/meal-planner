@@ -14,10 +14,8 @@ function WeeklyPlanCard({ plan, dishes, onDeletePlan, onDeleteEntry, onEntriesAd
 
   function handleAddToPending(event) {
     event.preventDefault();
-    setPendingEntries([
-      ...pendingEntries,
-      { day_of_week: day, meal_type: meal, dish_id: parseInt(dishId) },
-    ]);
+    const newEntry = { day_of_week: day, meal_type: meal, dish_public_id: dishId };
+    setPendingEntries([...pendingEntries, newEntry]);
     setDishId('');
   }
 
@@ -83,7 +81,7 @@ function WeeklyPlanCard({ plan, dishes, onDeletePlan, onDeleteEntry, onEntriesAd
           <ul>
             {pendingEntries.map((entry, index) => (
               <li key={index}>
-                {entry.day_of_week} — {entry.meal_type} — {dishLabelById(entry.dish_id)}
+                {entry.day_of_week} — {entry.meal_type} — {dishLabelById(entry.dish_public_id)}
                 <button onClick={() => handleRemovePending(index)}>Rimuovi</button>
               </li>
             ))}

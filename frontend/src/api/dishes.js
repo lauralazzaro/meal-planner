@@ -10,11 +10,11 @@ export async function createDish(label, comment, mainIngredientId) {
   const response = await apiClient.post(`${BASE}`, {
     label: label || null,
     comment: comment || null,
-    main_ingredient_id: parseInt(mainIngredientId),
+    main_ingredient_public_id: mainIngredientId || null,
   });
   return response.data;
 }
 
 export async function deleteDish(id) {
-  await apiClient.delete(`${BASE}${id}`);
+  await apiClient.delete(`${BASE}/${id}`);
 }

@@ -12,7 +12,10 @@ router = APIRouter(prefix="/shopping-lists", tags=["shopping-lists"])
 
 
 @router.get(
-    "/", response_model=Page[schemas.ShoppingListOut], name=RouteName.SHOPPING_LIST_LIST
+    "/",
+    response_model=Page[schemas.ShoppingListOut],
+    name=RouteName.SHOPPING_LIST_LIST,
+    response_model_by_alias=False,
 )
 def read_all_shopping_lists(
     db: Session = Depends(get_db),
@@ -31,6 +34,7 @@ def read_all_shopping_lists(
     "/{list_id}",
     response_model=schemas.ShoppingListOut,
     name=RouteName.SHOPPING_LIST_DETAIL,
+    response_model_by_alias=False,
 )
 def read_one_shopping_list(
     list_id: uuid.UUID,
@@ -46,7 +50,10 @@ def read_one_shopping_list(
 
 
 @router.post(
-    "/", response_model=schemas.ShoppingListOut, name=RouteName.SHOPPING_LIST_CREATE
+    "/",
+    response_model=schemas.ShoppingListOut,
+    name=RouteName.SHOPPING_LIST_CREATE,
+    response_model_by_alias=False,
 )
 def add_shopping_list(
     shopping_list: schemas.ShoppingListCreate,
@@ -62,6 +69,7 @@ def add_shopping_list(
     "/{list_id}/items",
     response_model=schemas.ShoppingListItemOut,
     name=RouteName.SHOPPING_LIST_ADD_ITEM,
+    response_model_by_alias=False,
 )
 def add_item_to_shopping_list(
     list_id: uuid.UUID,
@@ -83,6 +91,7 @@ def add_item_to_shopping_list(
     "/{list_id}",
     response_model=schemas.ShoppingListOut,
     name=RouteName.SHOPPING_LIST_UPDATE,
+    response_model_by_alias=False,
 )
 def update_shopping_list(
     list_id,
@@ -100,7 +109,11 @@ def update_shopping_list(
     return updated_list
 
 
-@router.delete("/{list_id}", name=RouteName.SHOPPING_LIST_DELETE)
+@router.delete(
+    "/{list_id}",
+    name=RouteName.SHOPPING_LIST_DELETE,
+    response_model_by_alias=False,
+)
 def delete_shopping_list(
     list_id,
     db: Session = Depends(get_db),
@@ -113,7 +126,11 @@ def delete_shopping_list(
     return {"status": "Shopping list deleted."}
 
 
-@router.delete("/{list_id}/items/{item_id}", name=RouteName.SHOPPING_LIST_DELETE_ITEM)
+@router.delete(
+    "/{list_id}/items/{item_id}",
+    name=RouteName.SHOPPING_LIST_DELETE_ITEM,
+    response_model_by_alias=False,
+)
 def delete_item_from_list(
     list_id,
     item_id: int,
@@ -136,6 +153,7 @@ def delete_item_from_list(
     "/{list_id}/items/{item_id}",
     response_model=schemas.ShoppingListItemOut,
     name=RouteName.SHOPPING_LIST_UPDATE_ITEM,
+    response_model_by_alias=False,
 )
 def update_item_from_list(
     list_id: uuid.UUID,

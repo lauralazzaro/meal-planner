@@ -16,7 +16,11 @@ class DishOut(DishBase):
     id: uuid.UUID = Field(alias="public_id")
     main_ingredient: ing_schemas.IngredientOut | None = None
 
-    model_config = {"from_attributes": True, "populate_by_name": True}
+    model_config = {
+        "from_attributes": True,
+        "populate_by_name": True,
+        "ser_json_by_alias": True,
+    }
 
 
 class DishUpdate(BaseModel):

@@ -108,7 +108,7 @@ def create_test_dish(client, headers, ingredient_id, label="Pasta al pomodoro"):
 @pytest.fixture
 def sample_dish(client, auth_headers, sample_ingredient):
     """Create a sample dish owned by the default test user."""
-    return create_test_dish(client, auth_headers, sample_ingredient["public_id"])
+    return create_test_dish(client, auth_headers, sample_ingredient["id"])
 
 
 # --- WeeklyPlan helpers ---

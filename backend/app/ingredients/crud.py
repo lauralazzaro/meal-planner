@@ -3,7 +3,6 @@ from sqlalchemy.exc import IntegrityError
 from app.ingredients import models, schemas
 from app.core.crud_helpers import (
     get_owned_record,
-    get_all_owned_records,
     get_owned_paginated_records,
 )
 
