@@ -21,8 +21,33 @@ def get_paginated_ingredients(user_id, db, params):
 
 
 def create_ingredient(ingredient: schemas.IngredientCreate, user_id: int, db: Session):
-    """Add a new ingredient to the pool for the given user."""
+    """Add ingredients to pool
+    First looks if it was already created and if is_deleted = True
+    If true, set it back to false so it can be used again
+    else simply add new ingredient to pool"""
+
+    existing = (
+        db.query(models.Ingredient)
+        .filter(
+            models.Ingredient.name == ingredient.name,
+            models.Ingredient.user_id == user_id,
+        )
+        .first()
+    )
+
+    if existing and existing.is_deleted:
+        existing.is_deleted = False
+        existing.shopping_category = ingredient.shopping_category
+        try:
+            db.commit()
+        except:
+            db.rollback()
+            raise
+        db.refresh(existing)
+        return existing
+
     new_ingredient = models.Ingredient(**ingredient.model_dump(), user_id=user_id)
+
     db.add(new_ingredient)
     try:
         db.commit()

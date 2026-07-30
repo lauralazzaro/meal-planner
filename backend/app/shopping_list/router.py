@@ -94,7 +94,7 @@ def add_item_to_shopping_list(
     response_model_by_alias=False,
 )
 def update_shopping_list(
-    list_id,
+    list_id: uuid.UUID,
     shopping_list: schemas.ShoppingListUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -115,7 +115,7 @@ def update_shopping_list(
     response_model_by_alias=False,
 )
 def delete_shopping_list(
-    list_id,
+    list_id: uuid.UUID,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -132,7 +132,7 @@ def delete_shopping_list(
     response_model_by_alias=False,
 )
 def delete_item_from_list(
-    list_id,
+    list_id: uuid.UUID,
     item_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),

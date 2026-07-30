@@ -3,7 +3,6 @@ from app.weekly_plans import models, schemas
 from app.dishes.models import Dish
 from app.core.crud_helpers import (
     get_owned_record,
-    get_all_owned_records,
     get_owned_paginated_records,
 )
 
@@ -18,10 +17,6 @@ def get_one_weekly_plan(weekly_plan_public_id, user_id: int, db: Session):
         True,
         lookup_field="public_id",
     )
-
-
-def get_all_weekly_plans(user_id: int, db: Session):
-    return get_all_owned_records(models.WeeklyPlan, user_id, db, True)
 
 
 def get_paginated_plans(user_id, db, params):

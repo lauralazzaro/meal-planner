@@ -34,24 +34,6 @@ class ShoppingListItemOut(BaseModel):
         "ser_json_by_alias": True,
     }
 
-    @model_validator(mode="before")
-    @classmethod
-    def resolve_ingredient_public_id(cls, obj):
-        """ORM objects expose the linked ingredient via the `ingredient`
-        relationship; translate it to the public_id the client should see,
-        without hand-mapping every other field."""
-        if hasattr(obj, "ingredient"):
-            # Work on a shallow copy of the ORM object's usable interface:
-            # Pydantic's from_attributes will still read every other field
-            # normally: we only need to inject the resolved value.
-            resolved = obj.ingredient.public_id if obj.ingredient else None
-            object.__setattr__(obj, "_resolved_ingredient_public_id", resolved)
-        return obj
-
-    @model_validator(mode="after")
-    def apply_resolved_ingredient_id(self):
-        return self
-
 
 class ShoppingListItemUpdate(BaseModel):
     quantity: int | None = Field(None, gt=0)

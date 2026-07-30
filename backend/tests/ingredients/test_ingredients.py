@@ -58,6 +58,18 @@ class TestCreateIngredient:
         )
         assert response.status_code == 422
 
+    def test_recreate_soft_deleted_ingredient_keeps_same_id(self, client, auth_headers):
+        created = create_test_ingredient(client, auth_headers, name="Pomodoro")
+
+        delete_response = client.delete(
+            app.url_path_for(RouteName.INGREDIENT_DELETE, ingredient_id=created["id"]),
+            headers=auth_headers,
+        )
+        assert delete_response.status_code == 200
+
+        recreated = create_test_ingredient(client, auth_headers, name="Pomodoro")
+        assert recreated["id"] == created["id"]
+
 
 class TestReadIngredient:
     def test_get_ingredient_by_id(self, client, auth_headers, sample_ingredient):
