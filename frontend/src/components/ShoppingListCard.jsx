@@ -10,7 +10,7 @@ function ShoppingListCard({ list, ingredients, onDeleteList, onDeleteItem, onIte
   async function handleAddFromPool(event) {
     event.preventDefault();
     await addItemToList(list.id, {
-      ingredient_id: parseInt(ingredientId),
+      ingredient_public_id: ingredientId,
       quantity: quantity ? parseInt(quantity) : null,
     });
     setIngredientId('');

@@ -21,14 +21,6 @@ def get_owned_record(
     return db.query(model).filter(and_(*filters)).first()
 
 
-def get_all_owned_records(model, user_id: int, db: Session, check_deleted: bool = True):
-    """Generic helper to fetch all records owned by the given user."""
-    query = db.query(model).filter(model.user_id == user_id)
-    if check_deleted and hasattr(model, "is_deleted"):
-        query = query.filter(model.is_deleted == False)
-    return query.all()
-
-
 def get_owned_paginated_records(
     model, user_id: int, db: Session, params, sort_field, check_deleted: bool = True
 ):

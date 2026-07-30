@@ -3,7 +3,6 @@ from app.shopping_list import models, schemas
 from app.ingredients.models import Ingredient
 from app.core.crud_helpers import (
     get_owned_record,
-    get_all_owned_records,
     get_owned_paginated_records,
 )
 import uuid
@@ -18,11 +17,6 @@ def create_shopping_list(
     db.commit()
     db.refresh(new_list)
     return new_list
-
-
-def get_all_shopping_lists(user_id: int, db: Session):
-    """Return all shopping lists."""
-    return get_all_owned_records(models.ShoppingList, user_id, db)
 
 
 def get_paginated_shopping_list(user_id, db, params):

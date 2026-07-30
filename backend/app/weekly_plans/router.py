@@ -67,6 +67,7 @@ def add_weekly_plan(
     "/{plan_id}",
     response_model=schemas.WeeklyPlanOut,
     name=RouteName.WEEKLY_PLAN_UPDATE,
+    response_model_by_alias=False,
 )
 def update_plan(
     plan_id: uuid.UUID,

@@ -10,9 +10,6 @@ logs:
 test:
 	docker compose exec backend pytest -v
 
-lint:
-	docker compose exec backend black --check .
-	docker compose exec backend flake8 .
 
 format:
 	docker compose exec backend black .
@@ -23,8 +20,11 @@ shell:
 migrate:
 	docker compose exec backend alembic upgrade head
 
+lint:
+	docker compose exec backend black --check .
+
 db-shell:
-	docker compose exec db psql -U postgres -d mealplanner
+	docker compose exec db sh -c 'psql -U $$POSTGRES_USER -d $$POSTGRES_DB'
 
 SHELL := /bin/bash
 
