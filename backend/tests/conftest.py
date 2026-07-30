@@ -3,7 +3,6 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from fastapi.testclient import TestClient
-
 from app.main import app
 from app.database import Base, get_db
 from app.core.route_names import RouteName

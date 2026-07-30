@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from app.dishes import models, schemas
 from app.ingredients.models import Ingredient
 from app.core.crud_helpers import (
@@ -14,7 +14,12 @@ def get_one_dish(dish_id, user_id: int, db: Session):
 
 def get_paginated_dishes(user_id, db, params):
     return get_owned_paginated_records(
-        models.Dish, user_id, db, params, sort_field="id"
+        models.Dish,
+        user_id,
+        db,
+        params,
+        sort_field="id",
+        options=[selectinload(models.Dish.main_ingredient)],
     )
 
 
