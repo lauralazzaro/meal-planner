@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from app.weekly_plans import models, schemas
 from app.dishes.models import Dish
 from app.core.crud_helpers import (
@@ -16,12 +16,26 @@ def get_one_weekly_plan(weekly_plan_public_id, user_id: int, db: Session):
         db,
         True,
         lookup_field="public_id",
+        options=[
+            selectinload(models.WeeklyPlan.dishes)
+            .selectinload(models.WeeklyPlanDish.dish)
+            .selectinload(Dish.main_ingredient)
+        ],
     )
 
 
 def get_paginated_plans(user_id, db, params):
     return get_owned_paginated_records(
-        models.WeeklyPlan, user_id, db, params, sort_field="id"
+        models.WeeklyPlan,
+        user_id,
+        db,
+        params,
+        sort_field="id",
+        options=[
+            selectinload(models.WeeklyPlan.dishes)
+            .selectinload(models.WeeklyPlanDish.dish)
+            .selectinload(Dish.main_ingredient)
+        ],
     )
 
 

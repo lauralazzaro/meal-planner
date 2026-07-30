@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from app.shopping_list import models, schemas
 from app.ingredients.models import Ingredient
 from app.core.crud_helpers import (
@@ -21,7 +21,16 @@ def create_shopping_list(
 
 def get_paginated_shopping_list(user_id, db, params):
     return get_owned_paginated_records(
-        models.ShoppingList, user_id, db, params, sort_field="id"
+        models.ShoppingList,
+        user_id,
+        db,
+        params,
+        sort_field="id",
+        options=[
+            selectinload(models.ShoppingList.items).selectinload(
+                models.ShoppingListItem.ingredient
+            )
+        ],
     )
 
 

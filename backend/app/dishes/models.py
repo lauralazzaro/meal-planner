@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, DateTime, Index
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.database import Base
@@ -10,7 +10,7 @@ from sqlalchemy.dialects.postgresql import UUID
 class Dish(Base):
     __tablename__ = "dishes"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
     public_id = Column(
         UUID(as_uuid=True), unique=True, nullable=False, default=uuid.uuid4, index=True
     )
@@ -30,6 +30,11 @@ class Dish(Base):
     )
 
     main_ingredient = relationship("Ingredient", foreign_keys=[main_ingredient_id])
+
+    __table_args__ = (
+        Index("ix_dishes_user_id_id", "user_id", "id"),
+        Index("ix_dishes_main_ingredient_id", "main_ingredient_id"),
+    )
 
     @property
     def display_label(self):

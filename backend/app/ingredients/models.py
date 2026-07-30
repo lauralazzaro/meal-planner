@@ -3,13 +3,13 @@ from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 from app.database import Base
-from sqlalchemy import UniqueConstraint
+from sqlalchemy import UniqueConstraint, Index
 
 
 class Ingredient(Base):
     __tablename__ = "ingredients"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
     public_id = Column(
         UUID(as_uuid=True), unique=True, nullable=False, default=uuid.uuid4, index=True
     )
@@ -29,4 +29,5 @@ class Ingredient(Base):
 
     __table_args__ = (
         UniqueConstraint("name", "user_id", name="uq_ingredient_name_per_user"),
+        Index("ix_ingredients_user_id_name", "user_id", "name"),
     )

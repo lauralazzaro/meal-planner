@@ -1,7 +1,10 @@
 """Tests for the WeeklyPlan module: create, read, update, delete,
 bulk dish creation, business rules, and multi-tenant isolation."""
 
-from tests.conftest import create_test_weekly_plan, create_test_dish
+from tests.conftest import (
+    create_test_weekly_plan,
+    create_test_dish,
+)
 from app.main import app
 from app.core.route_names import RouteName
 import uuid
