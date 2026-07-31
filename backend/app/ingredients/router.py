@@ -1,14 +1,12 @@
 import uuid
 
-from app.core.pagination import Page, PaginationParams, pagination_params
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, HTTPException
 from sqlalchemy.exc import IntegrityError
-from app.database import get_db
-from app.ingredients import crud, schemas
-from app.auth.models import User
-from app.core.dependencies import get_current_user
+
+from app.core.dependencies import CurrentUser, DbSession
+from app.core.pagination import Page, PaginationQuery
 from app.core.route_names import RouteName
+from app.ingredients import crud, schemas
 
 router = APIRouter(prefix="/ingredients", tags=["ingredients"])
 
@@ -20,9 +18,9 @@ router = APIRouter(prefix="/ingredients", tags=["ingredients"])
     response_model_by_alias=False,
 )
 def read_all_ingredients(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-    params: PaginationParams = Depends(pagination_params),
+    db: DbSession,
+    current_user: CurrentUser,
+    params: PaginationQuery,
 ):
     """Return all ingredients owned by the current user."""
     items, next_cursor, has_next = crud.get_paginated_ingredients(
@@ -39,8 +37,8 @@ def read_all_ingredients(
 )
 def read_ingredient(
     ingredient_id: uuid.UUID,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    db: DbSession,
+    current_user: CurrentUser,
 ):
     """Return a single ingredient by id, owned by the current user."""
     ingredient = crud.get_ingredient(ingredient_id, current_user.id, db)
@@ -57,8 +55,8 @@ def read_ingredient(
 )
 def create_ingredient(
     ingredient: schemas.IngredientCreate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    db: DbSession,
+    current_user: CurrentUser,
 ):
     """Add a new ingredient to the pool."""
     try:
@@ -78,8 +76,8 @@ def create_ingredient(
 def update_ingredient(
     ingredient_id: uuid.UUID,
     ingredient_update: schemas.IngredientUpdate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    db: DbSession,
+    current_user: CurrentUser,
 ):
     """Update one or more fields of an existing ingredient."""
     ingredient = crud.update_ingredient(
@@ -97,8 +95,8 @@ def update_ingredient(
 )
 def delete_ingredient(
     ingredient_id: uuid.UUID,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    db: DbSession,
+    current_user: CurrentUser,
 ):
     """Mark an ingredient as deleted."""
     ingredient = crud.delete_ingredient(ingredient_id, current_user.id, db)

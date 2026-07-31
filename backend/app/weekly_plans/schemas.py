@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from app.dishes import schemas as dishes_schemas
 from enum import Enum
 import uuid
+from app.core.schemas import PublicIdSchema, ORMSchema
 
 
 class DayOfWeek(str, Enum):
@@ -29,15 +30,9 @@ class WeeklyPlanDishCreate(WeeklyPlanDishBase):
     dish_public_id: uuid.UUID
 
 
-class WeeklyPlanDishOut(WeeklyPlanDishBase):
+class WeeklyPlanDishOut(WeeklyPlanDishBase, ORMSchema):
     id: int
     dish: dishes_schemas.DishOut
-
-    model_config = {
-        "from_attributes": True,
-        "populate_by_name": True,
-        "ser_json_by_alias": True,
-    }
 
 
 class WeeklyPlanDishUpdate(BaseModel):
@@ -59,15 +54,8 @@ class WeeklyPlanCreate(WeeklyPlanBase):
     pass
 
 
-class WeeklyPlanOut(WeeklyPlanBase):
-    id: uuid.UUID = Field(alias="public_id")
+class WeeklyPlanOut(WeeklyPlanBase, PublicIdSchema):
     dishes: list[WeeklyPlanDishOut] | None = None
-
-    model_config = {
-        "from_attributes": True,
-        "populate_by_name": True,
-        "ser_json_by_alias": True,
-    }
 
 
 class WeeklyPlanUpdate(BaseModel):

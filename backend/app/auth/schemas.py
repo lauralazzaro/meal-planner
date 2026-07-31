@@ -1,5 +1,6 @@
 import uuid
 from pydantic import BaseModel, EmailStr, Field, field_validator
+from app.core.schemas import PublicIdSchema
 
 
 class UserCreate(BaseModel):
@@ -14,11 +15,8 @@ class UserCreate(BaseModel):
         return v
 
 
-class UserOut(BaseModel):
-    id: uuid.UUID = Field(alias="public_id")
+class UserOut(PublicIdSchema):
     email: EmailStr
-
-    model_config = {"from_attributes": True, "populate_by_name": True}
 
 
 class Token(BaseModel):

@@ -1,11 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session, selectinload
-from app.database import get_db
+from fastapi import APIRouter, HTTPException
 from app.shopping_list import crud, schemas
-from app.auth.models import User
-from app.core.dependencies import get_current_user
+from app.core.dependencies import DbSession, CurrentUser
 from app.core.route_names import RouteName
-from app.core.pagination import Page, PaginationParams, pagination_params
+from app.core.pagination import Page, PaginationQuery
 import uuid
 
 router = APIRouter(prefix="/shopping-lists", tags=["shopping-lists"])
@@ -18,9 +15,9 @@ router = APIRouter(prefix="/shopping-lists", tags=["shopping-lists"])
     response_model_by_alias=False,
 )
 def read_all_shopping_lists(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-    params: PaginationParams = Depends(pagination_params),
+    db: DbSession,
+    current_user: CurrentUser,
+    params: PaginationQuery,
 ):
     """Return all shopping lists."""
 
@@ -38,8 +35,8 @@ def read_all_shopping_lists(
 )
 def read_one_shopping_list(
     list_id: uuid.UUID,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    db: DbSession,
+    current_user: CurrentUser,
 ):
     """Return one shopping list."""
 
@@ -57,8 +54,8 @@ def read_one_shopping_list(
 )
 def add_shopping_list(
     shopping_list: schemas.ShoppingListCreate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    db: DbSession,
+    current_user: CurrentUser,
 ):
     """Create an empty shoppting list"""
 
@@ -74,8 +71,8 @@ def add_shopping_list(
 def add_item_to_shopping_list(
     list_id: uuid.UUID,
     item: schemas.ShoppingListItemCreate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    db: DbSession,
+    current_user: CurrentUser,
 ):
     """Add items to shopping list"""
 
@@ -96,8 +93,8 @@ def add_item_to_shopping_list(
 def update_shopping_list(
     list_id: uuid.UUID,
     shopping_list: schemas.ShoppingListUpdate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    db: DbSession,
+    current_user: CurrentUser,
 ):
     """Update shopping list"""
 
@@ -116,8 +113,8 @@ def update_shopping_list(
 )
 def delete_shopping_list(
     list_id: uuid.UUID,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    db: DbSession,
+    current_user: CurrentUser,
 ):
     deleted_list = crud.delete_shopping_list(list_id, current_user.id, db)
     if not deleted_list:
@@ -134,8 +131,8 @@ def delete_shopping_list(
 def delete_item_from_list(
     list_id: uuid.UUID,
     item_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    db: DbSession,
+    current_user: CurrentUser,
 ):
     """Delete one item from a shopping list"""
 
@@ -159,8 +156,8 @@ def update_item_from_list(
     list_id: uuid.UUID,
     item_id: int,
     item: schemas.ShoppingListItemUpdate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    db: DbSession,
+    current_user: CurrentUser,
 ):
     """Update one item in a shopping list"""
 

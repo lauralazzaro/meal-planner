@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from app.ingredients import schemas as ing_schemas
 import uuid
+from app.core.schemas import PublicIdSchema, ORMSchema
 
 
 class DishBase(BaseModel):
@@ -12,15 +13,8 @@ class DishCreate(DishBase):
     main_ingredient_public_id: uuid.UUID
 
 
-class DishOut(DishBase):
-    id: uuid.UUID = Field(alias="public_id")
+class DishOut(DishBase, PublicIdSchema):
     main_ingredient: ing_schemas.IngredientOut | None = None
-
-    model_config = {
-        "from_attributes": True,
-        "populate_by_name": True,
-        "ser_json_by_alias": True,
-    }
 
 
 class DishUpdate(BaseModel):

@@ -25,14 +25,12 @@ def get_paginated_dishes(user_id, db, params):
 
 def create_dish(dish: schemas.DishCreate, user_id: int, db: Session):
     """Create a new dish linked to an existing ingredient owned by the same user."""
-    ingredient = (
-        db.query(Ingredient)
-        .filter(
-            Ingredient.public_id == dish.main_ingredient_public_id,
-            Ingredient.user_id == user_id,
-            Ingredient.is_deleted == False,
-        )
-        .first()
+    ingredient = get_owned_record(
+        Ingredient,
+        dish.main_ingredient_public_id,
+        user_id,
+        db,
+        lookup_field="public_id",
     )
     if not ingredient:
         return None
@@ -63,16 +61,17 @@ def update_dish(
     # main_ingredient_public_id needs resolving to the internal id before
     # it can be assigned to the model's main_ingredient_id column.
     if "main_ingredient_public_id" in update_data:
+
         new_public_id = update_data.pop("main_ingredient_public_id")
-        ingredient = (
-            db.query(Ingredient)
-            .filter(
-                Ingredient.public_id == new_public_id,
-                Ingredient.user_id == user_id,
-                Ingredient.is_deleted == False,
-            )
-            .first()
+
+        ingredient = get_owned_record(
+            Ingredient,
+            new_public_id,
+            user_id,
+            db,
+            lookup_field="public_id",
         )
+
         if not ingredient:
             return None
         dish.main_ingredient_id = ingredient.id

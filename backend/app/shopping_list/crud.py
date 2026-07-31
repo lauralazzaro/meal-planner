@@ -92,15 +92,10 @@ def create_shopping_list_item(
         return None
 
     if item.ingredient_public_id is not None:
-        ingredient = (
-            db.query(Ingredient)
-            .filter(
-                Ingredient.public_id == item.ingredient_public_id,
-                Ingredient.user_id == user_id,
-                Ingredient.is_deleted == False,
-            )
-            .first()
+        ingredient = get_owned_record(
+            Ingredient, item.ingredient_public_id, user_id, db, lookup_field="public_id"
         )
+
         if not ingredient:
             return None
 

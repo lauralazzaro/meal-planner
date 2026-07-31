@@ -1,6 +1,5 @@
-import uuid
-
 from pydantic import BaseModel, Field
+from app.core.schemas import PublicIdSchema, ORMSchema
 
 
 class IngredientBase(BaseModel):
@@ -12,13 +11,8 @@ class IngredientCreate(IngredientBase):
     pass
 
 
-class IngredientOut(IngredientBase):
-    id: uuid.UUID = Field(alias="public_id")
-    model_config = {
-        "from_attributes": True,
-        "populate_by_name": True,
-        "ser_json_by_alias": True,
-    }
+class IngredientOut(IngredientBase, PublicIdSchema):
+    pass
 
 
 class IngredientUpdate(BaseModel):
