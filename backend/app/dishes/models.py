@@ -5,9 +5,10 @@ from app.database import Base
 from app.ingredients.models import Ingredient
 import uuid
 from sqlalchemy.dialects.postgresql import UUID
+from app.core.mixins import PublicIdMixin, TimestampMixin, OwnedMixin, SoftDeleteMixin
 
 
-class Dish(Base):
+class Dish(PublicIdMixin, TimestampMixin, OwnedMixin, SoftDeleteMixin, Base):
     __tablename__ = "dishes"
 
     id = Column(Integer, primary_key=True)
@@ -17,17 +18,6 @@ class Dish(Base):
     label = Column(String, nullable=True)
     comment = Column(String, nullable=True)
     main_ingredient_id = Column(Integer, ForeignKey("ingredients.id"), nullable=False)
-    is_deleted = Column(Boolean, nullable=False, default=False)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    created_at = Column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
-    )
-    updated_at = Column(
-        DateTime(timezone=True),
-        server_default=func.now(),
-        onupdate=func.now(),
-        nullable=False,
-    )
 
     main_ingredient = relationship("Ingredient", foreign_keys=[main_ingredient_id])
 

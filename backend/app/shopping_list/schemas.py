@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field, model_validator
 from datetime import datetime
 import uuid
+from app.core.schemas import PublicIdSchema, ORMSchema
 
 
 class ShoppingListItemCreate(BaseModel):
@@ -20,7 +21,7 @@ class ShoppingListItemCreate(BaseModel):
         return self
 
 
-class ShoppingListItemOut(BaseModel):
+class ShoppingListItemOut(ORMSchema):
     id: int
     name: str
     shopping_category: str
@@ -28,11 +29,6 @@ class ShoppingListItemOut(BaseModel):
     unit: str | None = None
     is_checked: bool
     ingredient_id: uuid.UUID | None = Field(None, alias="ingredient_public_id")
-    model_config = {
-        "from_attributes": True,
-        "populate_by_name": True,
-        "ser_json_by_alias": True,
-    }
 
 
 class ShoppingListItemUpdate(BaseModel):
@@ -45,17 +41,10 @@ class ShoppingListCreate(BaseModel):
     name: str | None = Field(None, min_length=1, max_length=100)
 
 
-class ShoppingListOut(BaseModel):
-    id: uuid.UUID = Field(alias="public_id")
+class ShoppingListOut(PublicIdSchema):
     name: str | None = None
     created_at: datetime
     items: list[ShoppingListItemOut] = []
-
-    model_config = {
-        "from_attributes": True,
-        "populate_by_name": True,
-        "ser_json_by_alias": True,
-    }
 
 
 class ShoppingListUpdate(BaseModel):

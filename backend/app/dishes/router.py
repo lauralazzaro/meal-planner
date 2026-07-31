@@ -1,11 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from app.database import get_db
+from fastapi import APIRouter, HTTPException
 from app.dishes import crud, schemas
-from app.auth.models import User
-from app.core.dependencies import get_current_user
+from app.core.dependencies import DbSession, CurrentUser
 from app.core.route_names import RouteName
-from app.core.pagination import PaginationParams, pagination_params, Page
+from app.core.pagination import PaginationQuery, Page
 import uuid
 
 router = APIRouter(prefix="/dishes", tags=["dishes"])
@@ -17,11 +14,7 @@ router = APIRouter(prefix="/dishes", tags=["dishes"])
     name=RouteName.DISH_LIST,
     response_model_by_alias=False,
 )
-def read_all_dishes(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-    params: PaginationParams = Depends(pagination_params),
-):
+def read_all_dishes(db: DbSession, current_user: CurrentUser, params: PaginationQuery):
     """Return all non-deleted dishes."""
 
     items, next_cursor, has_next = crud.get_paginated_dishes(
@@ -39,8 +32,8 @@ def read_all_dishes(
 )
 def read_one_dish(
     dish_id: uuid.UUID,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    db: DbSession,
+    current_user: CurrentUser,
 ):
     """Return a single dish by id. Raises 404 if not found or deleted."""
 
@@ -58,8 +51,8 @@ def read_one_dish(
 )
 def create_dish(
     dish: schemas.DishCreate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    db: DbSession,
+    current_user: CurrentUser,
 ):
     """Create a new dish linked to an existing ingredient. Raises 404 if ingredient not found."""
 
@@ -78,8 +71,8 @@ def create_dish(
 def update_dish(
     dish_id: uuid.UUID,
     dish_update: schemas.DishUpdate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    db: DbSession,
+    current_user: CurrentUser,
 ):
     """Update one or more fields of an existing dish. Raises 404 if not found."""
 
@@ -97,8 +90,8 @@ def update_dish(
 )
 def delete_dish(
     dish_id: uuid.UUID,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    db: DbSession,
+    current_user: CurrentUser,
 ):
     """Mark a dish as deleted. Raises 404 if not found."""
 

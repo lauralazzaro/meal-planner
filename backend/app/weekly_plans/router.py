@@ -1,11 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from app.database import get_db
+from fastapi import APIRouter, HTTPException
 from app.weekly_plans import crud, schemas
 from app.auth.models import User
-from app.core.dependencies import get_current_user
+from app.core.dependencies import DbSession, CurrentUser
 from app.core.route_names import RouteName
-from app.core.pagination import Page, PaginationParams, pagination_params
+from app.core.pagination import Page, PaginationQuery
 import uuid
 
 router = APIRouter(prefix="/weekly-plans", tags=["weekly-plans"])
@@ -18,9 +16,9 @@ router = APIRouter(prefix="/weekly-plans", tags=["weekly-plans"])
     response_model_by_alias=False,
 )
 def read_all_weekly_plans(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-    params: PaginationParams = Depends(pagination_params),
+    db: DbSession,
+    current_user: CurrentUser,
+    params: PaginationQuery,
 ):
     """Return all weekly plans."""
 
@@ -36,8 +34,8 @@ def read_all_weekly_plans(
 )
 def read_one_plan_by_id(
     plan_id: uuid.UUID,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    db: DbSession,
+    current_user: CurrentUser,
 ):
     """Return one weekly plan."""
 
@@ -57,8 +55,8 @@ def read_one_plan_by_id(
 )
 def add_weekly_plan(
     weekly_plan: schemas.WeeklyPlanCreate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    db: DbSession,
+    current_user: CurrentUser,
 ):
     return crud.create_weekly_plan(weekly_plan, current_user.id, db)
 
@@ -72,8 +70,8 @@ def add_weekly_plan(
 def update_plan(
     plan_id: uuid.UUID,
     plan_update: schemas.WeeklyPlanUpdate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    db: DbSession,
+    current_user: CurrentUser,
 ):
     """Update a name or default status of a plan"""
 
@@ -92,8 +90,8 @@ def update_plan(
 )
 def delete_weekly_plan(
     plan_id: uuid.UUID,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    db: DbSession,
+    current_user: CurrentUser,
 ):
     """Permanently delete a weekly plan."""
 
@@ -114,8 +112,8 @@ def delete_weekly_plan(
 def add_dishes_to_plan(
     plan_id: uuid.UUID,
     payload: schemas.WeeklyPlanDishBulkCreate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    db: DbSession,
+    current_user: CurrentUser,
 ):
     """Add multiple dishes to a weekly plan at once. Fails entirely if any dish_id is invalid."""
 
@@ -135,8 +133,8 @@ def add_dishes_to_plan(
 def delete_dish_from_plan(
     plan_id: uuid.UUID,
     weekly_plan_dish_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    db: DbSession,
+    current_user: CurrentUser,
 ):
     """Delete one dish entry from a weekly list"""
 

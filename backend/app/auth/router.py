@@ -1,17 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi import APIRouter, HTTPException
 
-from app.database import get_db
 from app.auth import crud, schemas
 from app.core import security
 from app.core.route_names import RouteName
+from app.core.dependencies import DbSession, LoginForm
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/register", response_model=schemas.UserOut, name=RouteName.AUTH_REGISTER)
-def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
+@router.post(
+    "/register",
+    response_model=schemas.UserOut,
+    name=RouteName.AUTH_REGISTER,
+    response_model_by_alias=False,
+)
+def register(user: schemas.UserCreate, db: DbSession):
     """Register a new user."""
     new_user = crud.create_user(user, db)
     if not new_user:
@@ -20,9 +23,7 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model=schemas.Token, name=RouteName.AUTH_LOGIN)
-def login(
-    form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
-):
+def login(form_data: LoginForm, db: DbSession):
     """Authenticate a user and return a JWT access token."""
     user = crud.authenticate_user(form_data.username, form_data.password, db)
     if not user:

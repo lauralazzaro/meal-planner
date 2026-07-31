@@ -5,6 +5,11 @@ from app.auth import crud
 from app.core.security import decode_access_token, oauth2_scheme
 from app.database import get_db
 
+from typing import Annotated
+from app.auth.models import User
+
+from fastapi.security import OAuth2PasswordRequestForm
+
 # FastAPI dependencies that need feature modules live here, separate from the
 # pure infrastructure in security.py. This is the layer allowed to depend on
 # app.auth.crud without creating an import cycle.
@@ -32,3 +37,8 @@ def get_current_user(
         )
 
     return user
+
+
+DbSession = Annotated[Session, Depends(get_db)]
+CurrentUser = Annotated[User, Depends(get_current_user)]
+LoginForm = Annotated[OAuth2PasswordRequestForm, Depends()]

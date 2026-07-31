@@ -5,26 +5,14 @@ from app.database import Base
 from app.ingredients.models import Ingredient  # noqa: F401
 import uuid
 from sqlalchemy.dialects.postgresql import UUID
+from app.core.mixins import PublicIdMixin, TimestampMixin, OwnedMixin
 
 
-class ShoppingList(Base):
+class ShoppingList(PublicIdMixin, TimestampMixin, OwnedMixin, Base):
     __tablename__ = "shopping_lists"
 
     id = Column(Integer, primary_key=True)
-    public_id = Column(
-        UUID(as_uuid=True), unique=True, nullable=False, default=uuid.uuid4, index=True
-    )
     name = Column(String, nullable=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    created_at = Column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
-    )
-    updated_at = Column(
-        DateTime(timezone=True),
-        server_default=func.now(),
-        onupdate=func.now(),
-        nullable=False,
-    )
 
     items = relationship(
         "ShoppingListItem", back_populates="shopping_list", cascade="all, delete-orphan"

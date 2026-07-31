@@ -6,6 +6,7 @@ from fastapi import Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import Query as SAQuery
+from typing import Annotated
 
 # ---------------------------------------------------------------------------
 # Opaque cursor encode/decode
@@ -130,3 +131,6 @@ def paginate_query(
         next_cursor = encode_cursor(getattr(last, sort_field), last.id)
 
     return items, next_cursor, has_next
+
+
+PaginationQuery = Annotated[PaginationParams, Depends(pagination_params)]

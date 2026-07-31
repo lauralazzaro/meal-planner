@@ -5,9 +5,10 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.database import Base
 from app.dishes.models import Dish
+from app.core.mixins import PublicIdMixin, TimestampMixin, OwnedMixin
 
 
-class WeeklyPlan(Base):
+class WeeklyPlan(PublicIdMixin, TimestampMixin, OwnedMixin, Base):
     __tablename__ = "weekly_plan"
 
     id = Column(Integer, primary_key=True)
@@ -16,16 +17,6 @@ class WeeklyPlan(Base):
     )
     name = Column(String, nullable=True)
     is_default = Column(Boolean, nullable=False, default=False)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    created_at = Column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
-    )
-    updated_at = Column(
-        DateTime(timezone=True),
-        server_default=func.now(),
-        onupdate=func.now(),
-        nullable=False,
-    )
 
     dishes = relationship(
         "WeeklyPlanDish", back_populates="weekly_plan", cascade="all, delete-orphan"
