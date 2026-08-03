@@ -1,25 +1,22 @@
-import uuid
-from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, Index, DateTime
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, Index
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
 from app.database import Base
 from app.dishes.models import Dish
 from app.core.mixins import PublicIdMixin, TimestampMixin, OwnedMixin
 
 
 class WeeklyPlan(PublicIdMixin, TimestampMixin, OwnedMixin, Base):
-    __tablename__ = "weekly_plan"
+    __tablename__ = "weekly_plans"
 
     id = Column(Integer, primary_key=True)
-    public_id = Column(
-        UUID(as_uuid=True), unique=True, nullable=False, default=uuid.uuid4, index=True
-    )
     name = Column(String, nullable=True)
     is_default = Column(Boolean, nullable=False, default=False)
 
     dishes = relationship(
-        "WeeklyPlanDish", back_populates="weekly_plan", cascade="all, delete-orphan"
+        "WeeklyPlanDish",
+        back_populates="weekly_plan",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
     )
 
     __table_args__ = (
@@ -30,25 +27,29 @@ class WeeklyPlan(PublicIdMixin, TimestampMixin, OwnedMixin, Base):
             unique=True,
             postgresql_where=(is_default == True),
         ),
-        Index("ix_weekly_plan_user_id_id", "user_id", "id"),
+        Index("ix_weekly_plans_user_id_id", "user_id", "id"),
     )
 
 
 class WeeklyPlanDish(Base):
     """Represents a dish associated to a weekly meal plan"""
 
-    __tablename__ = "weekly_plan_dish"
+    __tablename__ = "weekly_plan_dishes"
 
     id = Column(Integer, primary_key=True)
     day_of_week = Column(String, nullable=False)
     meal_type = Column(String, nullable=False)
-    weekly_plan_id = Column(Integer, ForeignKey("weekly_plan.id"), nullable=False)
-    dish_id = Column(Integer, ForeignKey("dishes.id"), nullable=False)
+    weekly_plan_id = Column(
+        Integer, ForeignKey("weekly_plans.id", ondelete="CASCADE"), nullable=False
+    )
+    dish_id = Column(
+        Integer, ForeignKey("dishes.id", ondelete="CASCADE"), nullable=False
+    )
 
     weekly_plan = relationship("WeeklyPlan", back_populates="dishes")
     dish = relationship("Dish")
 
     __table_args__ = (
-        Index("ix_weekly_plan_dish_weekly_plan_id", "weekly_plan_id"),
-        Index("ix_weekly_plan_dish_dish_id", "dish_id"),
+        Index("ix_weekly_plan_dishes_weekly_plan_id", "weekly_plan_id"),
+        Index("ix_weekly_plan_dishes_dish_id", "dish_id"),
     )

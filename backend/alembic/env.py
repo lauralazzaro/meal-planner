@@ -14,7 +14,7 @@ from app.database import Base
 from app.ingredients.models import Ingredient  # noqa: F401
 from app.dishes.models import Dish  # noqa: F401
 from app.weekly_plans.models import WeeklyPlan, WeeklyPlanDish  # noqa: F401
-from app.shopping_list.models import ShoppingList, ShoppingListItem  # noqa: F401
+from app.shopping_lists.models import ShoppingList, ShoppingListItem  # noqa: F401
 from app.auth.models import User  # noqa: F401
 
 # this is the Alembic Config object, which provides

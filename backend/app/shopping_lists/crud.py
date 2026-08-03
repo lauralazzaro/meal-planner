@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session, selectinload
-from app.shopping_list import models, schemas
+from app.shopping_lists import models, schemas
 from app.ingredients.models import Ingredient
 from app.core.crud_helpers import (
     get_owned_record,

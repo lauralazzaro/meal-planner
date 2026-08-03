@@ -15,7 +15,10 @@ class ShoppingList(PublicIdMixin, TimestampMixin, OwnedMixin, Base):
     name = Column(String, nullable=True)
 
     items = relationship(
-        "ShoppingListItem", back_populates="shopping_list", cascade="all, delete-orphan"
+        "ShoppingListItem",
+        back_populates="shopping_list",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
     )
 
     __table_args__ = (Index("ix_shopping_lists_user_id_id", "user_id", "id"),)
@@ -28,13 +31,17 @@ class ShoppingListItem(Base):
     __tablename__ = "shopping_list_items"
 
     id = Column(Integer, primary_key=True)
-    shopping_list_id = Column(Integer, ForeignKey("shopping_lists.id"), nullable=False)
+    shopping_list_id = Column(
+        Integer, ForeignKey("shopping_lists.id", ondelete="CASCADE"), nullable=False
+    )
     name = Column(String, nullable=False)
     shopping_category = Column(String, nullable=False)
     quantity = Column(Integer, nullable=True)
     unit = Column(String, nullable=True)
     is_checked = Column(Boolean, nullable=False, default=False)
-    ingredient_id = Column(Integer, ForeignKey("ingredients.id"), nullable=True)
+    ingredient_id = Column(
+        Integer, ForeignKey("ingredients.id", ondelete="SET NULL"), nullable=True
+    )
 
     shopping_list = relationship("ShoppingList", back_populates="items")
     ingredient = relationship("Ingredient")

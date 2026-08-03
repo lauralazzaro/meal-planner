@@ -26,7 +26,9 @@ class TimestampMixin:
 class OwnedMixin:
     @declared_attr
     def user_id(cls):
-        return Column(Integer, ForeignKey("users.id"), nullable=False)
+        return Column(
+            Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+        )
 
 
 class SoftDeleteMixin:

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from app.shopping_list import crud, schemas
+from app.shopping_lists import crud, schemas
 from app.core.dependencies import DbSession, CurrentUser
 from app.core.route_names import RouteName
 from app.core.pagination import Page, PaginationQuery
