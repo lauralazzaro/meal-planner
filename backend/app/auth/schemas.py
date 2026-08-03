@@ -1,4 +1,3 @@
-import uuid
 from pydantic import BaseModel, EmailStr, Field, field_validator
 from app.core.schemas import PublicIdSchema
 

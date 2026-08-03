@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getIngredients, createIngredient, deleteIngredient } from '../api/ingredients';
+import { CATEGORIES, CATEGORY_LABELS } from '../constants/labels';
 
 function IngredientsPage() {
   const [ingredients, setIngredients] = useState([]);
@@ -62,13 +63,16 @@ function IngredientsPage() {
           onChange={(e) => setName(e.target.value)}
           required
         />
-        <input
-          type="text"
-          placeholder="Categoria"
+        <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
           required
-        />
+        >
+          <option value="">Scegli categoria</option>
+          {CATEGORIES.map((key) => (
+            <option key={key} value={key}>{CATEGORY_LABELS[key]}</option>
+          ))}
+        </select>
         <button type="submit">Aggiungi</button>
       </form>
 
@@ -77,7 +81,7 @@ function IngredientsPage() {
       <ul>
         {ingredients.map((ingredient) => (
           <li key={ingredient.id}>
-            {ingredient.name} — {ingredient.shopping_category}
+            {ingredient.name} — {CATEGORY_LABELS[ingredient.shopping_category]}
             <button onClick={() => handleDelete(ingredient.id)}>Elimina</button>
           </li>
         ))}

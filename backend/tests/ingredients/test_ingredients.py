@@ -6,6 +6,7 @@ import uuid
 from tests.conftest import create_test_ingredient
 from app.core.route_names import RouteName
 from app.main import app
+from app.core.enums import ShoppingCategory
 
 
 class TestCreateIngredient:
@@ -17,7 +18,7 @@ class TestCreateIngredient:
     def test_create_ingredient_without_auth_returns_401(self, client):
         response = client.post(
             app.url_path_for(RouteName.INGREDIENT_CREATE),
-            json={"name": "Pomodoro", "shopping_category": "vegetables"},
+            json={"name": "Pomodoro", "shopping_category": ShoppingCategory.VEGETABLES},
         )
         assert response.status_code == 401
 
@@ -25,7 +26,7 @@ class TestCreateIngredient:
         create_test_ingredient(client, auth_headers, name="Pomodoro")
         response = client.post(
             app.url_path_for(RouteName.INGREDIENT_CREATE),
-            json={"name": "Pomodoro", "shopping_category": "vegetables"},
+            json={"name": "Pomodoro", "shopping_category": ShoppingCategory.VEGETABLES},
             headers=auth_headers,
         )
         assert response.status_code == 409
@@ -37,7 +38,7 @@ class TestCreateIngredient:
         create_test_ingredient(client, auth_headers, name="Pomodoro")
         response = client.post(
             app.url_path_for(RouteName.INGREDIENT_CREATE),
-            json={"name": "Pomodoro", "shopping_category": "vegetables"},
+            json={"name": "Pomodoro", "shopping_category": ShoppingCategory.VEGETABLES},
             headers=other_user_headers,
         )
         assert response.status_code == 200
@@ -45,7 +46,7 @@ class TestCreateIngredient:
     def test_create_with_empty_name_returns_422(self, client, auth_headers):
         response = client.post(
             app.url_path_for(RouteName.INGREDIENT_CREATE),
-            json={"name": "", "shopping_category": "vegetables"},
+            json={"name": "", "shopping_category": ShoppingCategory.VEGETABLES},
             headers=auth_headers,
         )
         assert response.status_code == 422
@@ -53,7 +54,7 @@ class TestCreateIngredient:
     def test_create_with_name_over_max_length_returns_422(self, client, auth_headers):
         response = client.post(
             app.url_path_for(RouteName.INGREDIENT_CREATE),
-            json={"name": "a" * 101, "shopping_category": "vegetables"},
+            json={"name": "a" * 101, "shopping_category": ShoppingCategory.VEGETABLES},
             headers=auth_headers,
         )
         assert response.status_code == 422

@@ -1,10 +1,11 @@
 """Tests for the ShoppingList module: create, read, update, delete,
 item management (pool or free text), cascade delete, and multi-tenant isolation."""
 
-from tests.conftest import create_test_shopping_list
-from app.core.route_names import RouteName
-from app.main import app
 import uuid
+from tests.conftest import create_test_shopping_list
+from app.main import app
+from app.core.route_names import RouteName
+from app.core.enums import ShoppingCategory
 
 
 class TestCreateShoppingList:
@@ -112,7 +113,7 @@ class TestAddItemToShoppingList:
                 RouteName.SHOPPING_LIST_ADD_ITEM,
                 list_id=sample_shopping_list["id"],
             ),
-            json={"name": "Detersivo", "shopping_category": "Altro"},
+            json={"name": "Detersivo", "shopping_category": ShoppingCategory.OTHER},
             headers=auth_headers,
         )
         assert response.status_code == 200

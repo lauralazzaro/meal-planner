@@ -1,10 +1,11 @@
 from pydantic import BaseModel, Field
-from app.core.schemas import PublicIdSchema, ORMSchema
+from app.core.schemas import PublicIdSchema
+from app.core.enums import ShoppingCategory
 
 
 class IngredientBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
-    shopping_category: str = Field(..., min_length=1, max_length=50)
+    shopping_category: ShoppingCategory | None = None
 
 
 class IngredientCreate(IngredientBase):
@@ -17,4 +18,4 @@ class IngredientOut(IngredientBase, PublicIdSchema):
 
 class IngredientUpdate(BaseModel):
     name: str | None = Field(None, min_length=1, max_length=100)
-    shopping_category: str | None = Field(None, min_length=1, max_length=50)
+    shopping_category: ShoppingCategory | None = None

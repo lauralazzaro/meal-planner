@@ -1,11 +1,9 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, DateTime, Index
+from sqlalchemy import Column, Integer, Numeric, String, ForeignKey, Boolean, Index
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
 from app.database import Base
 from app.ingredients.models import Ingredient  # noqa: F401
-import uuid
-from sqlalchemy.dialects.postgresql import UUID
 from app.core.mixins import PublicIdMixin, TimestampMixin, OwnedMixin
+from app.core.enums import ShoppingCategory, enum_check
 
 
 class ShoppingList(PublicIdMixin, TimestampMixin, OwnedMixin, Base):
@@ -36,7 +34,7 @@ class ShoppingListItem(Base):
     )
     name = Column(String, nullable=False)
     shopping_category = Column(String, nullable=False)
-    quantity = Column(Integer, nullable=True)
+    quantity = Column(Numeric(10, 3), nullable=True)
     unit = Column(String, nullable=True)
     is_checked = Column(Boolean, nullable=False, default=False)
     ingredient_id = Column(
@@ -47,6 +45,11 @@ class ShoppingListItem(Base):
     ingredient = relationship("Ingredient")
 
     __table_args__ = (
+        enum_check(
+            "shopping_category",
+            ShoppingCategory,
+            "ck_shopping_list_items_shopping_category",
+        ),
         Index("ix_shopping_list_items_shopping_list_id", "shopping_list_id"),
         Index("ix_shopping_list_items_ingredient_id", "ingredient_id"),
     )
