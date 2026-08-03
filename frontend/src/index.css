@@ -350,17 +350,17 @@ a {
   margin-bottom: 0.75rem;
 }
 
-.meal-card-badge.colazione {
+.meal-card-badge.breakfast {
   background-color: var(--dash-tertiary-container);
   color: var(--dash-on-tertiary-container);
 }
 
-.meal-card-badge.pranzo {
+.meal-card-badge.lunch {
   background-color: var(--dash-secondary-container);
   color: var(--dash-on-secondary-container);
 }
 
-.meal-card-badge.cena {
+.meal-card-badge.dinner {
   background-color: var(--dash-primary-container);
   color: var(--dash-on-primary-container);
 }

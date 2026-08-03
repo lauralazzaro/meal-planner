@@ -2,15 +2,12 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getWeeklyPlans } from '../api/weeklyPlans';
 import { getDishLabel } from '../utils/dish';
-
-const DAY_NAMES_BY_JS_INDEX = [
-  'domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato',
-];
-const MEALS = [
-  { type: 'colazione', label: 'Colazione' },
-  { type: 'pranzo', label: 'Pranzo' },
-  { type: 'cena', label: 'Cena' },
-];
+import {
+  DAY_KEYS_BY_JS_INDEX,
+  DAY_LABELS,
+  MEAL_LABELS,
+  MEALS,
+} from '../constants/labels';
 
 function getGreeting() {
   const hour = new Date().getHours();
@@ -39,7 +36,7 @@ function DashboardPage() {
     }
   }
 
-  const today = DAY_NAMES_BY_JS_INDEX[new Date().getDay()];
+  const today = DAY_KEYS_BY_JS_INDEX[new Date().getDay()];
   const activePlan = plans.find((p) => p.is_default) || plans[0];
   const todaysEntries = activePlan
     ? activePlan.dishes.filter((entry) => entry.day_of_week === today)
@@ -52,7 +49,7 @@ function DashboardPage() {
           <h2>{getGreeting()}!</h2>
           <p>
             {activePlan
-              ? `Hai ${todaysEntries.length} ${todaysEntries.length === 1 ? 'pasto pianificato' : 'pasti pianificati'} per oggi (${today}).`
+              ? `Hai ${todaysEntries.length} ${todaysEntries.length === 1 ? 'pasto pianificato' : 'pasti pianificati'} per oggi (${DAY_LABELS[today]}).`
               : 'Non hai ancora un piano settimanale impostato.'}
           </p>
         </div>
@@ -82,11 +79,13 @@ function DashboardPage() {
 
       {!loading && activePlan && (
         <div className="meal-grid">
-          {MEALS.map(({ type, label }) => {
+          {MEALS.map((type) => {
             const entry = todaysEntries.find((e) => e.meal_type === type);
             return (
               <div key={type} className={`meal-card${entry ? '' : ' empty'}`}>
-                <span className={`meal-card-badge ${type}`}>{label}</span>
+                <span className={`meal-card-badge ${type.toLowerCase()}`}>
+                  {MEAL_LABELS[type]}
+                </span>
                 {entry ? (
                   <>
                     <h4>{getDishLabel(entry.dish)}</h4>

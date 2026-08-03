@@ -3,7 +3,7 @@
     "name": "Lista spesa test",
     "items": [
       {"ingredient_name": "Pomodoro", "quantity": 6, "unit": "pz"},
-      {"name": "Detersivo piatti", "shopping_category": "Altro", "quantity": 1}
+      {"name": "Detersivo piatti", "shopping_category": "OTHER", "quantity": 1}
     ]
   }
 ]

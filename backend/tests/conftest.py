@@ -6,6 +6,7 @@ from fastapi.testclient import TestClient
 from app.main import app
 from app.database import Base, get_db
 from app.core.route_names import RouteName
+from app.core.enums import ShoppingCategory
 
 TEST_DATABASE_URL = os.environ["TEST_DATABASE_URL"]
 
@@ -75,7 +76,9 @@ def other_user_headers(client):
 # --- Ingredient helpers ---
 
 
-def create_test_ingredient(client, headers, name="Pomodoro", category="vegetables"):
+def create_test_ingredient(
+    client, headers, name="Pomodoro", category=ShoppingCategory.VEGETABLES
+):
     """Helper to create an ingredient and return its data."""
     response = client.post(
         app.url_path_for(RouteName.INGREDIENT_CREATE),

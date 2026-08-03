@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { addItemToList } from '../api/shoppingLists';
+import { CATEGORIES, CATEGORY_LABELS } from '../constants/labels';
 
 function ShoppingListCard({ list, ingredients, onDeleteList, onDeleteItem, onItemAdded }) {
   const [ingredientId, setIngredientId] = useState('');
@@ -11,7 +12,9 @@ function ShoppingListCard({ list, ingredients, onDeleteList, onDeleteItem, onIte
     event.preventDefault();
     await addItemToList(list.id, {
       ingredient_public_id: ingredientId,
-      quantity: quantity ? parseInt(quantity) : null,
+      // parseFloat, not parseInt: quantity is decimal on the backend, so
+      // 0.5 kg must survive the trip instead of being truncated to 0.
+      quantity: quantity ? parseFloat(quantity) : null,
     });
     setIngredientId('');
     setQuantity('');
@@ -39,7 +42,7 @@ function ShoppingListCard({ list, ingredients, onDeleteList, onDeleteItem, onIte
       <ul>
         {list.items.map((item) => (
           <li key={item.id}>
-            {item.name} {item.quantity && `x${item.quantity}`} ({item.shopping_category})
+            {item.name} {item.quantity && `x${item.quantity}`} ({CATEGORY_LABELS[item.shopping_category]})
             <button onClick={() => onDeleteItem(item.id)}>Rimuovi</button>
           </li>
         ))}
@@ -54,6 +57,7 @@ function ShoppingListCard({ list, ingredients, onDeleteList, onDeleteItem, onIte
         </select>
         <input
           type="number"
+          step="any"
           placeholder="Quantità"
           value={quantity}
           onChange={(e) => setQuantity(e.target.value)}
@@ -69,13 +73,16 @@ function ShoppingListCard({ list, ingredients, onDeleteList, onDeleteItem, onIte
           onChange={(e) => setFreeTextName(e.target.value)}
           required
         />
-        <input
-          type="text"
-          placeholder="Categoria"
+        <select
           value={freeTextCategory}
           onChange={(e) => setFreeTextCategory(e.target.value)}
           required
-        />
+        >
+          <option value="">Scegli categoria</option>
+          {CATEGORIES.map((key) => (
+            <option key={key} value={key}>{CATEGORY_LABELS[key]}</option>
+          ))}
+        </select>
         <button type="submit">Aggiungi voce libera</button>
       </form>
     </div>

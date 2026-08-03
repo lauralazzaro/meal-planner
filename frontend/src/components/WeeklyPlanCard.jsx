@@ -1,9 +1,7 @@
 import { useState } from 'react';
 import { addDishesToPlan } from '../api/weeklyPlans';
 import { getDishLabel } from '../utils/dish';
-
-const DAYS = ['lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato', 'domenica'];
-const MEALS = ['colazione', 'pranzo', 'cena'];
+import { DAYS, DAY_LABELS, MEALS, MEAL_LABELS } from '../constants/labels';
 
 function WeeklyPlanCard({ plan, dishes, onDeletePlan, onDeleteEntry, onEntriesAdded }) {
   const [pendingEntries, setPendingEntries] = useState([]);
@@ -50,7 +48,7 @@ function WeeklyPlanCard({ plan, dishes, onDeletePlan, onDeleteEntry, onEntriesAd
       <ul>
         {plan.dishes.map((entry) => (
           <li key={entry.id}>
-            {entry.day_of_week} — {entry.meal_type} — {getDishLabel(entry.dish)}
+            {DAY_LABELS[entry.day_of_week]} — {MEAL_LABELS[entry.meal_type]} — {getDishLabel(entry.dish)}
             <button onClick={() => onDeleteEntry(entry.id)}>Rimuovi</button>
           </li>
         ))}
@@ -59,10 +57,10 @@ function WeeklyPlanCard({ plan, dishes, onDeletePlan, onDeleteEntry, onEntriesAd
       <h3>Componi la settimana</h3>
       <form onSubmit={handleAddToPending}>
         <select value={day} onChange={(e) => setDay(e.target.value)}>
-          {DAYS.map((d) => <option key={d} value={d}>{d}</option>)}
+          {DAYS.map((d) => <option key={d} value={d}>{DAY_LABELS[d]}</option>)}
         </select>
         <select value={meal} onChange={(e) => setMeal(e.target.value)}>
-          {MEALS.map((m) => <option key={m} value={m}>{m}</option>)}
+          {MEALS.map((m) => <option key={m} value={m}>{MEAL_LABELS[m]}</option>)}
         </select>
         <select value={dishId} onChange={(e) => setDishId(e.target.value)} required>
           <option value="">Scegli piatto</option>
@@ -81,7 +79,7 @@ function WeeklyPlanCard({ plan, dishes, onDeletePlan, onDeleteEntry, onEntriesAd
           <ul>
             {pendingEntries.map((entry, index) => (
               <li key={index}>
-                {entry.day_of_week} — {entry.meal_type} — {dishLabelById(entry.dish_public_id)}
+                {DAY_LABELS[entry.day_of_week]} — {MEAL_LABELS[entry.meal_type]} — {dishLabelById(entry.dish_public_id)}
                 <button onClick={() => handleRemovePending(index)}>Rimuovi</button>
               </li>
             ))}

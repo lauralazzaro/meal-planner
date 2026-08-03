@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 from app.ingredients import schemas as ing_schemas
 import uuid
-from app.core.schemas import PublicIdSchema, ORMSchema
+from app.core.schemas import PublicIdSchema
 
 
 class DishBase(BaseModel):

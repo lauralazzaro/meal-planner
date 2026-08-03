@@ -1,14 +1,15 @@
+import uuid
 from pydantic import BaseModel, Field, model_validator
 from datetime import datetime
-import uuid
 from app.core.schemas import PublicIdSchema, ORMSchema
+from app.core.enums import ShoppingCategory
 
 
 class ShoppingListItemCreate(BaseModel):
     ingredient_public_id: uuid.UUID | None = None
     name: str | None = Field(None, min_length=1, max_length=100)
-    shopping_category: str | None = Field(None, min_length=1, max_length=50)
-    quantity: int | None = Field(None, gt=0)
+    shopping_category: ShoppingCategory | None = None
+    quantity: float | None = Field(None, gt=0)
     unit: str | None = Field(None, max_length=20)
 
     @model_validator(mode="after")
@@ -24,15 +25,15 @@ class ShoppingListItemCreate(BaseModel):
 class ShoppingListItemOut(ORMSchema):
     id: int
     name: str
-    shopping_category: str
-    quantity: int | None = None
+    shopping_category: ShoppingCategory | None = None
+    quantity: float | None = None
     unit: str | None = None
     is_checked: bool
     ingredient_id: uuid.UUID | None = Field(None, alias="ingredient_public_id")
 
 
 class ShoppingListItemUpdate(BaseModel):
-    quantity: int | None = Field(None, gt=0)
+    quantity: float | None = Field(None, gt=0)
     unit: str | None = Field(None, max_length=20)
     is_checked: bool | None = None
 

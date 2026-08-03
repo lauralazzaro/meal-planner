@@ -1,24 +1,9 @@
+import uuid
+
 from pydantic import BaseModel, Field
 from app.dishes import schemas as dishes_schemas
-from enum import Enum
-import uuid
 from app.core.schemas import PublicIdSchema, ORMSchema
-
-
-class DayOfWeek(str, Enum):
-    lunedi = "lunedì"
-    martedi = "martedì"
-    mercoledi = "mercoledì"
-    giovedi = "giovedì"
-    venerdi = "venerdì"
-    sabato = "sabato"
-    domenica = "domenica"
-
-
-class MealType(str, Enum):
-    colazione = "colazione"
-    pranzo = "pranzo"
-    cena = "cena"
+from app.core.enums import DayOfWeek, MealType
 
 
 class WeeklyPlanDishBase(BaseModel):

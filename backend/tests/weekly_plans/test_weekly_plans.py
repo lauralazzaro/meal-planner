@@ -1,13 +1,15 @@
 """Tests for the WeeklyPlan module: create, read, update, delete,
 bulk dish creation, business rules, and multi-tenant isolation."""
 
+import uuid
+
 from tests.conftest import (
     create_test_weekly_plan,
     create_test_dish,
 )
 from app.main import app
 from app.core.route_names import RouteName
-import uuid
+from app.core.enums import DayOfWeek, MealType
 
 
 class TestCreateWeeklyPlan:
@@ -116,13 +118,13 @@ class TestBulkAddDishes:
             json={
                 "dishes": [
                     {
-                        "day_of_week": "lunedì",
-                        "meal_type": "pranzo",
+                        "day_of_week": DayOfWeek.MONDAY,
+                        "meal_type": MealType.LUNCH,
                         "dish_public_id": dish["id"],
                     },
                     {
-                        "day_of_week": "martedì",
-                        "meal_type": "cena",
+                        "day_of_week": DayOfWeek.TUESDAY,
+                        "meal_type": MealType.DINNER,
                         "dish_public_id": dish["id"],
                     },
                 ]
@@ -146,13 +148,13 @@ class TestBulkAddDishes:
             json={
                 "dishes": [
                     {
-                        "day_of_week": "lunedì",
-                        "meal_type": "pranzo",
+                        "day_of_week": DayOfWeek.MONDAY,
+                        "meal_type": MealType.LUNCH,
                         "dish_public_id": dish["id"],
                     },
                     {
-                        "day_of_week": "martedì",
-                        "meal_type": "cena",
+                        "day_of_week": DayOfWeek.TUESDAY,
+                        "meal_type": MealType.DINNER,
                         "dish_public_id": str(uuid.uuid4()),
                     },
                 ]
@@ -182,8 +184,8 @@ class TestBulkAddDishes:
             json={
                 "dishes": [
                     {
-                        "day_of_week": "luned",
-                        "meal_type": "pranzo",
+                        "day_of_week": "NOT_A_DAY",
+                        "meal_type": "LUNCH",
                         "dish_public_id": dish["id"],
                     }
                 ]
@@ -213,8 +215,8 @@ class TestBulkAddDishes:
             json={
                 "dishes": [
                     {
-                        "day_of_week": "lunedì",
-                        "meal_type": "pranzo",
+                        "day_of_week": DayOfWeek.MONDAY,
+                        "meal_type": MealType.DINNER,
                         "dish_public_id": dish["id"],
                     }
                 ]
@@ -237,8 +239,8 @@ class TestDeleteWeeklyPlan:
             json={
                 "dishes": [
                     {
-                        "day_of_week": "lunedì",
-                        "meal_type": "pranzo",
+                        "day_of_week": "MONDAY",
+                        "meal_type": "LUNCH",
                         "dish_public_id": dish["id"],
                     }
                 ]

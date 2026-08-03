@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship
 from app.database import Base
 from app.dishes.models import Dish
 from app.core.mixins import PublicIdMixin, TimestampMixin, OwnedMixin
+from app.core.enums import DayOfWeek, MealType, enum_check
 
 
 class WeeklyPlan(PublicIdMixin, TimestampMixin, OwnedMixin, Base):
@@ -50,6 +51,8 @@ class WeeklyPlanDish(Base):
     dish = relationship("Dish")
 
     __table_args__ = (
+        enum_check("day_of_week", DayOfWeek, "ck_weekly_plan_dishes_day_of_week"),
+        enum_check("meal_type", MealType, "ck_weekly_plan_dishes_meal_type"),
         Index("ix_weekly_plan_dishes_weekly_plan_id", "weekly_plan_id"),
         Index("ix_weekly_plan_dishes_dish_id", "dish_id"),
     )
