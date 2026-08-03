@@ -5,7 +5,7 @@ from app.database import SessionLocal
 from app.ingredients.models import Ingredient
 from app.dishes.models import Dish
 from app.weekly_plans.models import WeeklyPlan, WeeklyPlanDish
-from app.shopping_list.models import ShoppingList, ShoppingListItem
+from app.shopping_lists.models import ShoppingList, ShoppingListItem
 from app.auth.models import User
 from app.core import security
 

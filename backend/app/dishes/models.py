@@ -17,7 +17,9 @@ class Dish(PublicIdMixin, TimestampMixin, OwnedMixin, SoftDeleteMixin, Base):
     )
     label = Column(String, nullable=True)
     comment = Column(String, nullable=True)
-    main_ingredient_id = Column(Integer, ForeignKey("ingredients.id"), nullable=False)
+    main_ingredient_id = Column(
+        Integer, ForeignKey("ingredients.id", ondelete="CASCADE"), nullable=False
+    )
 
     main_ingredient = relationship("Ingredient", foreign_keys=[main_ingredient_id])
 
