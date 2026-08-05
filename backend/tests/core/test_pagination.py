@@ -2,7 +2,7 @@ from app.core.route_names import RouteName
 from app.core.pagination import DEFAULT_LIMIT, MAX_LIMIT, encode_cursor
 from app.main import app
 from tests.conftest import create_test_ingredient
-import base64, json
+import base64, json, uuid
 
 
 class TestPagination:
@@ -71,7 +71,7 @@ class TestPagination:
         create_test_ingredient(client, auth_headers, name="Aglio")
         create_test_ingredient(client, auth_headers, name="Basilico")
 
-        cursor = encode_cursor("zzzzzzzz", 999999)
+        cursor = encode_cursor("zzzzzzzz", str(uuid.uuid4()))
 
         response = client.get(
             app.url_path_for(RouteName.INGREDIENT_LIST),
@@ -83,3 +83,17 @@ class TestPagination:
         assert data["items"] == []
         assert data["has_next"] is False
         assert data["next_cursor"] is None
+
+    def test_cursor_does_not_leak_internal_ids(self, client, auth_headers):
+        for i in range(3):
+            create_test_ingredient(client, auth_headers, name=f"Ingrediente {i}")
+
+        response = client.get(
+            app.url_path_for(RouteName.INGREDIENT_LIST),
+            params={"limit": 2},
+            headers=auth_headers,
+        )
+        payload = json.loads(base64.urlsafe_b64decode(response.json()["next_cursor"]))
+
+        assert not isinstance(payload["t"], int)
+        uuid.UUID(payload["t"])

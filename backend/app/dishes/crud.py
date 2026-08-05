@@ -18,7 +18,8 @@ def get_paginated_dishes(user_id, db, params):
         user_id,
         db,
         params,
-        sort_field="id",
+        sort_field="created_at",
+        descending=True,
         options=[selectinload(models.Dish.main_ingredient)],
     )
 
