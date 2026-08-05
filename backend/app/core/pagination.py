@@ -8,6 +8,9 @@ from sqlalchemy import and_, or_
 from sqlalchemy.orm import Query as SAQuery
 from typing import Annotated
 
+import uuid
+from datetime import datetime
+
 # ---------------------------------------------------------------------------
 # Opaque cursor encode/decode
 # ---------------------------------------------------------------------------
@@ -17,26 +20,52 @@ from typing import Annotated
 # never depends on its internal shape.
 
 
-def encode_cursor(sort_value, id_value: int) -> str:
-    """Encode the last row's (sort_value, id) into an opaque base64 cursor."""
-    payload = json.dumps({"s": sort_value, "id": id_value})
+def _json_default(value):
+    """Render values that JSON cannot represent natively."""
+    if isinstance(value, datetime):
+        return value.isoformat()
+    return str(value)
+
+
+def encode_cursor(sort_value, tiebreaker_value) -> str:
+    """Encode the last row's (sort_value, tiebreaker) into an opaque cursor."""
+    payload = json.dumps(
+        {"s": sort_value, "t": tiebreaker_value}, default=_json_default
+    )
     return base64.urlsafe_b64encode(payload.encode("utf-8")).decode("utf-8")
 
 
 def decode_cursor(cursor: str) -> dict:
-    """Decode an opaque cursor back into {'s': sort_value, 'id': id_value}.
-
-    Raises HTTP 400 if the cursor is malformed -- a client sending garbage
-    must get a clean client error, never a 500.
-    """
+    """Decode an opaque cursor back into {'s': ..., 't': ...}."""
     try:
         raw = base64.urlsafe_b64decode(cursor.encode("utf-8"))
         data = json.loads(raw)
-        # minimal shape validation
-        if "s" not in data or "id" not in data:
+        if "s" not in data or "t" not in data:
             raise ValueError("missing keys")
         return data
     except Exception:
+        raise HTTPException(status_code=400, detail="Invalid pagination cursor")
+
+
+def _coerce(value, column):
+    """Rebuild the Python type the column expects from the JSON scalar.
+
+    Without this a datetime column would be compared against a string, and a
+    UUID column against text: Postgres would either reject the query or, worse,
+    compare them as text and silently return the wrong page.
+    """
+    if value is None:
+        return None
+    python_type = column.type.python_type
+    try:
+        if python_type is datetime:
+            return datetime.fromisoformat(value)
+        if python_type is uuid.UUID:
+            return uuid.UUID(value)
+        return python_type(value)
+    except (TypeError, ValueError):
+        # A cursor built for a different sort field, e.g. 'MONDAY' arriving
+        # where a timestamp is expected. Client error, not a crash.
         raise HTTPException(status_code=400, detail="Invalid pagination cursor")
 
 
@@ -90,36 +119,43 @@ def paginate_query(
     model,
     sort_field: str,
     params: PaginationParams,
+    tiebreaker_field: str = "public_id",
+    descending: bool = False,
 ) -> tuple[list, str | None, bool]:
-    """Apply composite-keyset pagination to an existing SQLAlchemy query.
+    """Apply composite-keyset pagination to an existing query.
 
-    Orders by (sort_field, id) ascending -- id is the tie-breaker that makes
-    the ordering total, which is what keeps the cursor unambiguous.
-
-    Returns (items, next_cursor, has_next). Fetches limit+1 rows to detect a
-    following page without a separate COUNT query.
+    Orders by (sort_field, tiebreaker_field). The tie-breaker is what makes the
+    ordering total, and therefore the cursor unambiguous. It defaults to
+    public_id rather than the primary key so that no internal identifier ever
+    reaches the client: a base64 cursor is opaque by convention, not by design.
     """
     sort_col = getattr(model, sort_field)
-    id_col = model.id
+    tie_col = getattr(model, tiebreaker_field)
 
-    # deterministic, total ordering
-    query = query.order_by(sort_col.asc(), id_col.asc())
+    if descending:
+        query = query.order_by(sort_col.desc(), tie_col.desc())
+    else:
+        query = query.order_by(sort_col.asc(), tie_col.asc())
 
-    # keyset WHERE, only when a cursor is supplied
     if params.after is not None:
         cursor = decode_cursor(params.after)
-        last_sort = cursor["s"]
-        last_id = cursor["id"]
-        # (sort, id) > (last_sort, last_id) as a row comparison:
-        #   sort > last_sort  OR  (sort == last_sort AND id > last_id)
-        query = query.filter(
-            or_(
-                sort_col > last_sort,
-                and_(sort_col == last_sort, id_col > last_id),
-            )
-        )
+        last_sort = _coerce(cursor["s"], sort_col)
+        last_tie = _coerce(cursor["t"], tie_col)
 
-    # fetch one extra to know whether there's a next page
+        # (sort, tie) strictly after the last row of the previous page,
+        # with the comparison flipped when the ordering is descending.
+        if descending:
+            keyset = or_(
+                sort_col < last_sort,
+                and_(sort_col == last_sort, tie_col < last_tie),
+            )
+        else:
+            keyset = or_(
+                sort_col > last_sort,
+                and_(sort_col == last_sort, tie_col > last_tie),
+            )
+        query = query.filter(keyset)
+
     rows = query.limit(params.limit + 1).all()
 
     has_next = len(rows) > params.limit
@@ -128,7 +164,9 @@ def paginate_query(
     next_cursor = None
     if has_next and items:
         last = items[-1]
-        next_cursor = encode_cursor(getattr(last, sort_field), last.id)
+        next_cursor = encode_cursor(
+            getattr(last, sort_field), getattr(last, tiebreaker_field)
+        )
 
     return items, next_cursor, has_next
 

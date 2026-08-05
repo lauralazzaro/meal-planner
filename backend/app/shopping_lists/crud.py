@@ -25,7 +25,8 @@ def get_paginated_shopping_list(user_id, db, params):
         user_id,
         db,
         params,
-        sort_field="id",
+        sort_field="created_at",
+        descending=True,
         options=[
             selectinload(models.ShoppingList.items).selectinload(
                 models.ShoppingListItem.ingredient

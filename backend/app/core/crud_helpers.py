@@ -37,6 +37,7 @@ def get_owned_paginated_records(
     sort_field,
     check_deleted: bool = True,
     options: Sequence = (),
+    descending: bool = False,
 ):
     """Generic helper to fetch records owned by the given user.
 
@@ -44,11 +45,9 @@ def get_owned_paginated_records(
     so each module can eager-load its own relationships and avoid N+1.
     """
     query = db.query(model).filter(model.user_id == user_id)
-
     if check_deleted and hasattr(model, "is_deleted"):
         query = query.filter(model.is_deleted == False)
-
     if options:
         query = query.options(*options)
 
-    return paginate_query(query, model, sort_field, params)
+    return paginate_query(query, model, sort_field, params, descending=descending)
