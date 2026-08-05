@@ -20,8 +20,7 @@ def create_user(user: schemas.UserCreate, db: Session):
         hashed_password=security.hash_password(user.password),
     )
     db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+    db.flush()
     return new_user
 
 

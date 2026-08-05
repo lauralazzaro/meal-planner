@@ -38,23 +38,12 @@ def create_ingredient(ingredient: schemas.IngredientCreate, user_id: int, db: Se
     if existing and existing.is_deleted:
         existing.is_deleted = False
         existing.shopping_category = ingredient.shopping_category
-        try:
-            db.commit()
-        except:
-            db.rollback()
-            raise
-        db.refresh(existing)
         return existing
 
     new_ingredient = models.Ingredient(**ingredient.model_dump(), user_id=user_id)
 
     db.add(new_ingredient)
-    try:
-        db.commit()
-    except IntegrityError:
-        db.rollback()
-        raise
-    db.refresh(new_ingredient)
+    db.flush()
     return new_ingredient
 
 
@@ -68,13 +57,8 @@ def update_ingredient(
     ingredient = get_ingredient(ingredient_public_id, user_id, db)
     if not ingredient:
         return None
-
-    update_data = ingredient_update.model_dump(exclude_unset=True)
-    for field, value in update_data.items():
+    for field, value in ingredient_update.model_dump(exclude_unset=True).items():
         setattr(ingredient, field, value)
-
-    db.commit()
-    db.refresh(ingredient)
     return ingredient
 
 
@@ -85,6 +69,4 @@ def delete_ingredient(ingredient_public_id, user_id: int, db: Session):
         return None
 
     ingredient.is_deleted = True
-    db.commit()
-    db.refresh(ingredient)
     return ingredient

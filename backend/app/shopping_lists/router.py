@@ -59,7 +59,9 @@ def add_shopping_list(
 ):
     """Create an empty shoppting list"""
 
-    return crud.create_shopping_list(shopping_list, current_user.id, db)
+    new_shopping_list = crud.create_shopping_list(shopping_list, current_user.id, db)
+    db.commit()
+    return new_shopping_list
 
 
 @router.post(
@@ -81,6 +83,9 @@ def add_item_to_shopping_list(
         raise HTTPException(
             status_code=404, detail="List not found or ingredients invalid"
         )
+
+    db.commit()
+
     return added_item
 
 
@@ -103,6 +108,9 @@ def update_shopping_list(
     )
     if updated_list is None:
         raise HTTPException(status_code=404, detail="List not found")
+
+    db.commit()
+
     return updated_list
 
 
@@ -119,6 +127,8 @@ def delete_shopping_list(
     deleted_list = crud.delete_shopping_list(list_id, current_user.id, db)
     if not deleted_list:
         raise HTTPException(status_code=404, detail="List not found.")
+
+    db.commit()
 
     return {"status": "Shopping list deleted."}
 
@@ -143,6 +153,8 @@ def delete_item_from_list(
     if not shopping_list_item:
         raise HTTPException(status_code=404, detail="Shopping list item not found")
 
+    db.commit()
+
     return {"status": "Item deleted from shopping list"}
 
 
@@ -166,5 +178,7 @@ def update_item_from_list(
     )
     if not updated_item:
         raise HTTPException(status_code=404, detail="Item not found")
+
+    db.commit()
 
     return updated_item

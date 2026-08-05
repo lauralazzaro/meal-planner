@@ -19,6 +19,7 @@ def register(user: schemas.UserCreate, db: DbSession):
     new_user = crud.create_user(user, db)
     if not new_user:
         raise HTTPException(status_code=409, detail="Email already registered")
+    db.commit()
     return new_user
 
 

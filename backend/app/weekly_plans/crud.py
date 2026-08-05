@@ -52,8 +52,7 @@ def create_weekly_plan(
 
     new_weekly_plan = models.WeeklyPlan(**weekly_plan.model_dump(), user_id=user_id)
     db.add(new_weekly_plan)
-    db.commit()
-    db.refresh(new_weekly_plan)
+    db.flush()
     return new_weekly_plan
 
 
@@ -105,9 +104,7 @@ def add_dishes_to_plan(
         db.add(entry)
         new_entries.append(entry)
 
-    db.commit()
-    for entry in new_entries:
-        db.refresh(entry)
+    db.flush()
 
     return new_entries
 
@@ -140,8 +137,6 @@ def update_plan(
     for field, value in update_data.items():
         setattr(plan, field, value)
 
-    db.commit()
-    db.refresh(plan)
     return plan
 
 
@@ -165,7 +160,7 @@ def delete_weekly_plan(plan_public_id, user_id: int, db: Session):
         return None
 
     db.delete(plan)
-    db.commit()
+
     return plan
 
 
@@ -188,5 +183,5 @@ def delete_weekly_plan_dish(
         return None
 
     db.delete(weekly_dish)
-    db.commit()
+
     return weekly_dish

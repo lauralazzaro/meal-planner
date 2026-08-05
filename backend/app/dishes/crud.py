@@ -44,8 +44,7 @@ def create_dish(dish: schemas.DishCreate, user_id: int, db: Session):
     )
 
     db.add(new_dish)
-    db.commit()
-    db.refresh(new_dish)
+    db.flush()
     return new_dish
 
 
@@ -80,8 +79,6 @@ def update_dish(
     for field, value in update_data.items():
         setattr(dish, field, value)
 
-    db.commit()
-    db.refresh(dish)
     return dish
 
 
@@ -92,6 +89,5 @@ def delete_dish(dish_public_id, user_id: int, db: Session):
         return None
 
     dish.is_deleted = True
-    db.commit()
-    db.refresh(dish)
+
     return dish

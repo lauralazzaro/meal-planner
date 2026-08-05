@@ -59,6 +59,9 @@ def create_dish(
     new_dish = crud.create_dish(dish, current_user.id, db)
     if not new_dish:
         raise HTTPException(status_code=404, detail="Ingredient not found")
+
+    db.commit()
+
     return new_dish
 
 
@@ -80,6 +83,8 @@ def update_dish(
     if not dish:
         raise HTTPException(status_code=404, detail="Dish not found")
 
+    db.commit()
+
     return dish
 
 
@@ -98,4 +103,7 @@ def delete_dish(
     dish = crud.delete_dish(dish_id, current_user.id, db)
     if not dish:
         raise HTTPException(status_code=404, detail="Dish not found")
+
+    db.commit()
+
     return {"status": "Dish marked as deleted"}
