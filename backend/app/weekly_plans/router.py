@@ -58,7 +58,9 @@ def add_weekly_plan(
     db: DbSession,
     current_user: CurrentUser,
 ):
-    return crud.create_weekly_plan(weekly_plan, current_user.id, db)
+    new_weekly_plan = crud.create_weekly_plan(weekly_plan, current_user.id, db)
+    db.commit()
+    return new_weekly_plan
 
 
 @router.patch(
@@ -80,6 +82,8 @@ def update_plan(
     if not updated_plan:
         raise HTTPException(status_code=404, detail="Plan not found")
 
+    db.commit()
+
     return updated_plan
 
 
@@ -99,6 +103,8 @@ def delete_weekly_plan(
 
     if not plan:
         raise HTTPException(status_code=404, detail="Weekly plan not found")
+
+    db.commit()
 
     return {"status": "Weekly plan deleted"}
 
@@ -122,6 +128,9 @@ def add_dishes_to_plan(
         raise HTTPException(
             status_code=404, detail="Plan not found or one or more dish_id invalid"
         )
+
+    db.commit()
+
     return entries
 
 
@@ -144,5 +153,7 @@ def delete_dish_from_plan(
 
     if not weekly_plan_dish:
         raise HTTPException(status_code=404, detail="Weekly plan dish entry not found")
+
+    db.commit()
 
     return {"status": "Weekly plan dish entry deleted"}

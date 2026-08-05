@@ -14,8 +14,8 @@ def create_shopping_list(
     """Create a new, empty shopping list."""
     new_list = models.ShoppingList(name=shopping_list.name, user_id=user_id)
     db.add(new_list)
-    db.commit()
-    db.refresh(new_list)
+    db.flush()
+
     return new_list
 
 
@@ -62,8 +62,6 @@ def update_shopping_list(
     for field, value in update_data.items():
         setattr(shopping_list, field, value)
 
-    db.commit()
-    db.refresh(shopping_list)
     return shopping_list
 
 
@@ -74,7 +72,7 @@ def delete_shopping_list(shopping_list_public_id: uuid.UUID, user_id: int, db: S
         return None
 
     db.delete(shopping_list)
-    db.commit()
+
     return shopping_list
 
 
@@ -118,8 +116,8 @@ def create_shopping_list_item(
         )
 
     db.add(new_item)
-    db.commit()
-    db.refresh(new_item)
+    db.flush()
+
     return new_item
 
 
@@ -155,8 +153,6 @@ def update_shopping_list_item(
     for field, value in update_data.items():
         setattr(item, field, value)
 
-    db.commit()
-    db.refresh(item)
     return item
 
 
@@ -169,5 +165,5 @@ def delete_shopping_list_item(
         return None
 
     db.delete(item)
-    db.commit()
+
     return item

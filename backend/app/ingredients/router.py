@@ -60,7 +60,9 @@ def create_ingredient(
 ):
     """Add a new ingredient to the pool."""
     try:
-        return crud.create_ingredient(ingredient, current_user.id, db)
+        new_ingredient = crud.create_ingredient(ingredient, current_user.id, db)
+        db.commit()
+        return new_ingredient
     except IntegrityError:
         raise HTTPException(
             status_code=409, detail="An ingredient with this name already exists"
@@ -85,6 +87,7 @@ def update_ingredient(
     )
     if not ingredient:
         raise HTTPException(status_code=404, detail="Ingredient not found")
+    db.commit()
     return ingredient
 
 
@@ -102,4 +105,5 @@ def delete_ingredient(
     ingredient = crud.delete_ingredient(ingredient_id, current_user.id, db)
     if not ingredient:
         raise HTTPException(status_code=404, detail="Ingredient not found")
+    db.commit()
     return {"status": "Ingredient marked as deleted"}
