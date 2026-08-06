@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request, Response, status
 from app.weekly_plans import crud, schemas
 from app.auth.models import User
 from app.core.dependencies import DbSession, CurrentUser
@@ -50,16 +50,22 @@ def read_one_plan_by_id(
 @router.post(
     "/",
     response_model=schemas.WeeklyPlanOut,
+    status_code=status.HTTP_201_CREATED,
     name=RouteName.WEEKLY_PLAN_CREATE,
     response_model_by_alias=False,
 )
 def add_weekly_plan(
     weekly_plan: schemas.WeeklyPlanCreate,
+    response: Response,
+    request: Request,
     db: DbSession,
     current_user: CurrentUser,
 ):
     new_weekly_plan = crud.create_weekly_plan(weekly_plan, current_user.id, db)
     db.commit()
+    response.headers["Location"] = str(
+        request.url_for(RouteName.WEEKLY_PLAN_DETAIL, plan_id=new_weekly_plan.public_id)
+    )
     return new_weekly_plan
 
 
@@ -112,6 +118,7 @@ def delete_weekly_plan(
 @router.post(
     "/{plan_id}/dishes",
     response_model=list[schemas.WeeklyPlanDishOut],
+    status_code=status.HTTP_201_CREATED,
     name=RouteName.WEEKLY_PLAN_ADD_DISHES,
     response_model_by_alias=False,
 )

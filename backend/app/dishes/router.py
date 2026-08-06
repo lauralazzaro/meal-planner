@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Response, Request, status
 from app.dishes import crud, schemas
 from app.core.dependencies import DbSession, CurrentUser
 from app.core.route_names import RouteName
@@ -46,11 +46,14 @@ def read_one_dish(
 @router.post(
     "/",
     response_model=schemas.DishOut,
+    status_code=status.HTTP_201_CREATED,
     name=RouteName.DISH_CREATE,
     response_model_by_alias=False,
 )
 def create_dish(
     dish: schemas.DishCreate,
+    response: Response,
+    request: Request,
     db: DbSession,
     current_user: CurrentUser,
 ):
@@ -61,6 +64,9 @@ def create_dish(
         raise HTTPException(status_code=404, detail="Ingredient not found")
 
     db.commit()
+    response.headers["Location"] = str(
+        request.url_for(RouteName.DISH_DETAIL, dish_id=new_dish.public_id)
+    )
 
     return new_dish
 

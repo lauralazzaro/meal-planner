@@ -1,6 +1,5 @@
 import uuid
-
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, status, Request, Response, status
 from sqlalchemy.exc import IntegrityError
 
 from app.core.dependencies import CurrentUser, DbSession
@@ -50,11 +49,14 @@ def read_ingredient(
 @router.post(
     "/",
     response_model=schemas.IngredientOut,
+    status_code=status.HTTP_201_CREATED,
     name=RouteName.INGREDIENT_CREATE,
     response_model_by_alias=False,
 )
 def create_ingredient(
     ingredient: schemas.IngredientCreate,
+    response: Response,
+    request: Request,
     db: DbSession,
     current_user: CurrentUser,
 ):
@@ -62,6 +64,11 @@ def create_ingredient(
     try:
         new_ingredient = crud.create_ingredient(ingredient, current_user.id, db)
         db.commit()
+        response.headers["Location"] = str(
+            request.url_for(
+                RouteName.INGREDIENT_DETAIL, ingredient_id=new_ingredient.public_id
+            )
+        )
         return new_ingredient
     except IntegrityError:
         raise HTTPException(

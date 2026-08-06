@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, status
 
 from app.auth import crud, schemas
 from app.core import security
@@ -11,6 +11,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 @router.post(
     "/register",
     response_model=schemas.UserOut,
+    status_code=status.HTTP_201_CREATED,
     name=RouteName.AUTH_REGISTER,
     response_model_by_alias=False,
 )
