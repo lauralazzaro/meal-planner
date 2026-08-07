@@ -126,7 +126,7 @@ def update_shopping_list(
 @router.delete(
     "/{list_id}",
     name=RouteName.SHOPPING_LIST_DELETE,
-    response_model_by_alias=False,
+    status_code=status.HTTP_204_NO_CONTENT,
 )
 def delete_shopping_list(
     list_id: uuid.UUID,
@@ -139,13 +139,11 @@ def delete_shopping_list(
 
     db.commit()
 
-    return {"status": "Shopping list deleted."}
-
 
 @router.delete(
     "/{list_id}/items/{item_id}",
     name=RouteName.SHOPPING_LIST_DELETE_ITEM,
-    response_model_by_alias=False,
+    status_code=status.HTTP_204_NO_CONTENT,
 )
 def delete_item_from_list(
     list_id: uuid.UUID,
@@ -163,8 +161,6 @@ def delete_item_from_list(
         raise HTTPException(status_code=404, detail="Shopping list item not found")
 
     db.commit()
-
-    return {"status": "Item deleted from shopping list"}
 
 
 @router.patch(

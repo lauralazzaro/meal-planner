@@ -132,7 +132,7 @@ class TestBulkAddDishes:
             headers=auth_headers,
         )
 
-        assert response.status_code == 200
+        assert response.status_code == 201
         assert len(response.json()) == 2
 
     def test_bulk_add_with_invalid_dish_id_saves_nothing(
@@ -254,7 +254,7 @@ class TestDeleteWeeklyPlan:
             ),
             headers=auth_headers,
         )
-        assert response.status_code == 200
+        assert response.status_code == 204
 
         get_response = client.get(
             app.url_path_for(

@@ -101,7 +101,7 @@ def update_ingredient(
 @router.delete(
     "/{ingredient_id}",
     name=RouteName.INGREDIENT_DELETE,
-    response_model_by_alias=False,
+    status_code=status.HTTP_204_NO_CONTENT,
 )
 def delete_ingredient(
     ingredient_id: uuid.UUID,
@@ -113,4 +113,3 @@ def delete_ingredient(
     if not ingredient:
         raise HTTPException(status_code=404, detail="Ingredient not found")
     db.commit()
-    return {"status": "Ingredient marked as deleted"}

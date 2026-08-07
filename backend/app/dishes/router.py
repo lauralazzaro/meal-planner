@@ -97,7 +97,7 @@ def update_dish(
 @router.delete(
     "/{dish_id}",
     name=RouteName.DISH_DELETE,
-    response_model_by_alias=False,
+    status_code=status.HTTP_204_NO_CONTENT,
 )
 def delete_dish(
     dish_id: uuid.UUID,
@@ -111,5 +111,3 @@ def delete_dish(
         raise HTTPException(status_code=404, detail="Dish not found")
 
     db.commit()
-
-    return {"status": "Dish marked as deleted"}

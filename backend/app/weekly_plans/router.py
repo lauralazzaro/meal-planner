@@ -96,7 +96,7 @@ def update_plan(
 @router.delete(
     "/{plan_id}",
     name=RouteName.WEEKLY_PLAN_DELETE,
-    response_model_by_alias=False,
+    status_code=status.HTTP_204_NO_CONTENT,
 )
 def delete_weekly_plan(
     plan_id: uuid.UUID,
@@ -112,15 +112,12 @@ def delete_weekly_plan(
 
     db.commit()
 
-    return {"status": "Weekly plan deleted"}
-
 
 @router.post(
     "/{plan_id}/dishes",
     response_model=list[schemas.WeeklyPlanDishOut],
     status_code=status.HTTP_201_CREATED,
     name=RouteName.WEEKLY_PLAN_ADD_DISHES,
-    response_model_by_alias=False,
 )
 def add_dishes_to_plan(
     plan_id: uuid.UUID,
@@ -144,6 +141,7 @@ def add_dishes_to_plan(
 @router.delete(
     "/{plan_id}/dishes/{weekly_plan_dish_id}",
     name=RouteName.WEEKLY_PLAN_DELETE_DISH,
+    status_code=status.HTTP_204_NO_CONTENT,
     response_model_by_alias=False,
 )
 def delete_dish_from_plan(
@@ -162,5 +160,3 @@ def delete_dish_from_plan(
         raise HTTPException(status_code=404, detail="Weekly plan dish entry not found")
 
     db.commit()
-
-    return {"status": "Weekly plan dish entry deleted"}
