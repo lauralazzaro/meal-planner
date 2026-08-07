@@ -148,7 +148,7 @@ class TestDeleteDish:
             app.url_path_for(RouteName.DISH_DELETE, dish_id=sample_dish["id"]),
             headers=auth_headers,
         )
-        assert response.status_code == 200
+        assert response.status_code == 204
 
     def test_deleted_dish_not_in_list(self, client, auth_headers, sample_dish):
         client.delete(

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request, Response, status
 from app.weekly_plans import crud, schemas
 from app.auth.models import User
 from app.core.dependencies import DbSession, CurrentUser
@@ -50,16 +50,22 @@ def read_one_plan_by_id(
 @router.post(
     "/",
     response_model=schemas.WeeklyPlanOut,
+    status_code=status.HTTP_201_CREATED,
     name=RouteName.WEEKLY_PLAN_CREATE,
     response_model_by_alias=False,
 )
 def add_weekly_plan(
     weekly_plan: schemas.WeeklyPlanCreate,
+    response: Response,
+    request: Request,
     db: DbSession,
     current_user: CurrentUser,
 ):
     new_weekly_plan = crud.create_weekly_plan(weekly_plan, current_user.id, db)
     db.commit()
+    response.headers["Location"] = str(
+        request.url_for(RouteName.WEEKLY_PLAN_DETAIL, plan_id=new_weekly_plan.public_id)
+    )
     return new_weekly_plan
 
 
@@ -90,7 +96,7 @@ def update_plan(
 @router.delete(
     "/{plan_id}",
     name=RouteName.WEEKLY_PLAN_DELETE,
-    response_model_by_alias=False,
+    status_code=status.HTTP_204_NO_CONTENT,
 )
 def delete_weekly_plan(
     plan_id: uuid.UUID,
@@ -106,14 +112,12 @@ def delete_weekly_plan(
 
     db.commit()
 
-    return {"status": "Weekly plan deleted"}
-
 
 @router.post(
     "/{plan_id}/dishes",
     response_model=list[schemas.WeeklyPlanDishOut],
+    status_code=status.HTTP_201_CREATED,
     name=RouteName.WEEKLY_PLAN_ADD_DISHES,
-    response_model_by_alias=False,
 )
 def add_dishes_to_plan(
     plan_id: uuid.UUID,
@@ -137,6 +141,7 @@ def add_dishes_to_plan(
 @router.delete(
     "/{plan_id}/dishes/{weekly_plan_dish_id}",
     name=RouteName.WEEKLY_PLAN_DELETE_DISH,
+    status_code=status.HTTP_204_NO_CONTENT,
     response_model_by_alias=False,
 )
 def delete_dish_from_plan(
@@ -155,5 +160,3 @@ def delete_dish_from_plan(
         raise HTTPException(status_code=404, detail="Weekly plan dish entry not found")
 
     db.commit()
-
-    return {"status": "Weekly plan dish entry deleted"}

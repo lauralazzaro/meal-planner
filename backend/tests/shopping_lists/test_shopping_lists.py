@@ -103,7 +103,7 @@ class TestAddItemToShoppingList:
 
         data = response.json()
 
-        assert response.status_code == 200
+        assert response.status_code == 201
         assert data["name"] == sample_ingredient["name"]
         assert data["ingredient_id"] == sample_ingredient["id"]
 
@@ -116,7 +116,7 @@ class TestAddItemToShoppingList:
             json={"name": "Detersivo", "shopping_category": ShoppingCategory.OTHER},
             headers=auth_headers,
         )
-        assert response.status_code == 200
+        assert response.status_code == 201
         assert response.json()["ingredient_id"] is None
 
     def test_add_item_without_ingredient_or_freetext_returns_422(
@@ -243,7 +243,7 @@ class TestDeleteShoppingListItem:
             ),
             headers=auth_headers,
         )
-        assert response.status_code == 200
+        assert response.status_code == 204
 
     def test_delete_nonexistent_item_returns_404(
         self, client, auth_headers, sample_shopping_list
@@ -279,7 +279,7 @@ class TestDeleteShoppingList:
             ),
             headers=auth_headers,
         )
-        assert response.status_code == 200
+        assert response.status_code == 204
 
         get_response = client.get(
             app.url_path_for(

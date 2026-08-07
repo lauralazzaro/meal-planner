@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Response, Request, status
 from app.shopping_lists import crud, schemas
 from app.core.dependencies import DbSession, CurrentUser
 from app.core.route_names import RouteName
@@ -49,11 +49,14 @@ def read_one_shopping_list(
 @router.post(
     "/",
     response_model=schemas.ShoppingListOut,
+    status_code=status.HTTP_201_CREATED,
     name=RouteName.SHOPPING_LIST_CREATE,
     response_model_by_alias=False,
 )
 def add_shopping_list(
     shopping_list: schemas.ShoppingListCreate,
+    response: Response,
+    request: Request,
     db: DbSession,
     current_user: CurrentUser,
 ):
@@ -61,12 +64,18 @@ def add_shopping_list(
 
     new_shopping_list = crud.create_shopping_list(shopping_list, current_user.id, db)
     db.commit()
+    response.headers["Location"] = str(
+        request.url_for(
+            RouteName.SHOPPING_LIST_DETAIL, list_id=new_shopping_list.public_id
+        )
+    )
     return new_shopping_list
 
 
 @router.post(
     "/{list_id}/items",
     response_model=schemas.ShoppingListItemOut,
+    status_code=status.HTTP_201_CREATED,
     name=RouteName.SHOPPING_LIST_ADD_ITEM,
     response_model_by_alias=False,
 )
@@ -117,7 +126,7 @@ def update_shopping_list(
 @router.delete(
     "/{list_id}",
     name=RouteName.SHOPPING_LIST_DELETE,
-    response_model_by_alias=False,
+    status_code=status.HTTP_204_NO_CONTENT,
 )
 def delete_shopping_list(
     list_id: uuid.UUID,
@@ -130,13 +139,11 @@ def delete_shopping_list(
 
     db.commit()
 
-    return {"status": "Shopping list deleted."}
-
 
 @router.delete(
     "/{list_id}/items/{item_id}",
     name=RouteName.SHOPPING_LIST_DELETE_ITEM,
-    response_model_by_alias=False,
+    status_code=status.HTTP_204_NO_CONTENT,
 )
 def delete_item_from_list(
     list_id: uuid.UUID,
@@ -154,8 +161,6 @@ def delete_item_from_list(
         raise HTTPException(status_code=404, detail="Shopping list item not found")
 
     db.commit()
-
-    return {"status": "Item deleted from shopping list"}
 
 
 @router.patch(

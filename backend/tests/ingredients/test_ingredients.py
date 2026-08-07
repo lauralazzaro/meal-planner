@@ -41,7 +41,7 @@ class TestCreateIngredient:
             json={"name": "Pomodoro", "shopping_category": ShoppingCategory.VEGETABLES},
             headers=other_user_headers,
         )
-        assert response.status_code == 200
+        assert response.status_code == 201
 
     def test_create_with_empty_name_returns_422(self, client, auth_headers):
         response = client.post(
@@ -66,7 +66,7 @@ class TestCreateIngredient:
             app.url_path_for(RouteName.INGREDIENT_DELETE, ingredient_id=created["id"]),
             headers=auth_headers,
         )
-        assert delete_response.status_code == 200
+        assert delete_response.status_code == 204
 
         recreated = create_test_ingredient(client, auth_headers, name="Pomodoro")
         assert recreated["id"] == created["id"]
@@ -213,7 +213,7 @@ class TestDeleteIngredient:
             ),
             headers=auth_headers,
         )
-        assert response.status_code == 200
+        assert response.status_code == 204
 
     def test_deleted_ingredient_not_in_list(
         self, client, auth_headers, sample_ingredient
